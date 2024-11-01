@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	business "github.com/Johnsoct/dicthesaurus/business/input"
+	input "github.com/Johnsoct/dicthesaurus/business/input"
 )
 
 func Search() {
-	if business.LookupValue == "" {
+	if input.LookupValue == "" {
 		fmt.Fprintf(os.Stdout, "lookup value is nil")
 		return
 	}
