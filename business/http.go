@@ -9,34 +9,30 @@ import (
 	"os"
 )
 
-// type JSON interface {
-//         get()
-//         TODO: return???()
-// }
-//
-// TODO: string method?
-
-type dictionaryapi struct {
-	Word      string `json:"word"`
-	Phonetic  string `json:"phonetic"`
-	Phonetics []struct {
-		Text  string `json:"text"`
-		Audio string `json:"audio,omitempty"`
-	} `json:"phonetics"`
-	Origin   string `json:"origin"`
-	Meanings []struct {
-		PartOfSpeech string `json:"partOfSpeech"`
-		Definitions  []struct {
-			Definition string `json:"definition"`
-			Example    string `json:"example"`
-			Synonyms   []any  `json:"synonyms"`
-			Antonyms   []any  `json:"antonyms"`
-		} `json:"definitions"`
-	} `json:"meanings"`
+type definitions struct {
+	Definition string `json:"definition"`
+	Example    string `json:"example"`
+	Synonyms   []any  `json:"synonyms"`
+	Antonyms   []any  `json:"antonyms"`
 }
 
-// dictionaryapi.dev returns an array of *dictionaryapi
-// type JSON map[string]dictionaryapi
+type meanings struct {
+	PartOfSpeech string        `json:"partOfSpeech"`
+	Definitions  []definitions `json:"definitions"`
+}
+
+type phonetics struct {
+	Text  string `json:"text"`
+	Audio string `json:"audio,omitempty"`
+}
+
+type dictionaryapi struct {
+	Word      string      `json:"word"`
+	Phonetic  string      `json:"phonetic"`
+	Phonetics []phonetics `json:"phonetics"`
+	Origin    string      `json:"origin"`
+	Meanings  []meanings  `json:"meanings"`
+}
 
 var data []dictionaryapi
 
@@ -67,7 +63,8 @@ func Unmarshal() {
 		fmt.Println(err)
 	}
 	fmt.Println("Unmarshalled data:", data)
-	fmt.Println("test:", data.Word])
+
+	fmt.Println("test:", data)
 }
 
 func Search() {
