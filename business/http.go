@@ -17,20 +17,20 @@ import (
 // TODO: string method?
 
 type dictionaryapi struct {
-	word      string
-	phonetic  string
-	phonetics []map[string]struct {
-		text  string
-		audio string
+	Word      string
+	Phonetic  string
+	Phonetics []map[string]struct {
+		Text  string
+		Audio string
 	}
-	origin   string
-	meanings []map[string]struct {
-		partOfSpeech string
-		defintions   []map[string]struct {
-			definition string
-			example    string
-			synonyms   []string
-			antonyms   []string
+	Origin   string
+	Meanings []map[string]struct {
+		PartOfSpeech string
+		Defintions   []map[string]struct {
+			Definition string
+			Example    string
+			Synonyms   []string
+			Antonyms   []string
 		}
 	}
 }
