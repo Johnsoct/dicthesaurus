@@ -17,28 +17,26 @@ import (
 // TODO: string method?
 
 type dictionaryapi struct {
-	Word      string
-	Phonetic  string
-	Phonetics []map[string]struct {
-		Text  string
-		Audio string
-	}
-	Origin   string
-	Meanings []map[string]struct {
-		PartOfSpeech string
-		Definitions  []map[string]struct {
-			Definition string
-			Example    string
-			Synonyms   []string
-			Antonyms   []string
-		}
-	}
+	Word      string `json:"word"`
+	Phonetic  string `json:"phonetic"`
+	Phonetics []struct {
+		Text  string `json:"text"`
+		Audio string `json:"audio,omitempty"`
+	} `json:"phonetics"`
+	Origin   string `json:"origin"`
+	Meanings []struct {
+		PartOfSpeech string `json:"partOfSpeech"`
+		Definitions  []struct {
+			Definition string `json:"definition"`
+			Example    string `json:"example"`
+			Synonyms   []any  `json:"synonyms"`
+			Antonyms   []any  `json:"antonyms"`
+		} `json:"definitions"`
+	} `json:"meanings"`
 }
 
 // dictionaryapi.dev returns an array of *dictionaryapi
 // type JSON map[string]dictionaryapi
-
-type JSON map[string]interface{}
 
 var data []dictionaryapi
 
@@ -69,6 +67,7 @@ func Unmarshal() {
 		fmt.Println(err)
 	}
 	fmt.Println("Unmarshalled data:", data)
+	fmt.Println("test:", data.Word])
 }
 
 func Search() {
