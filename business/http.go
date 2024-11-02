@@ -26,7 +26,7 @@ type dictionaryapi struct {
 	Origin   string
 	Meanings []map[string]struct {
 		PartOfSpeech string
-		Defintions   []map[string]struct {
+		Definitions  []map[string]struct {
 			Definition string
 			Example    string
 			Synonyms   []string
