@@ -3,13 +3,73 @@ package business
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 )
 
-// Not sure what to expect from the response's JSON data
+// type JSON interface {
+//         get()
+//         TODO: return???()
+// }
+//
+// TODO: string method?
+
+type dictionaryapi struct {
+	word      string
+	phonetic  string
+	phonetics []map[string]struct {
+		text  string
+		audio string
+	}
+	origin   string
+	meanings []map[string]struct {
+		partOfSpeech string
+		defintions   []map[string]struct {
+			definition string
+			example    string
+			synonyms   []string
+			antonyms   []string
+		}
+	}
+}
+
+// dictionaryapi.dev returns an array of *dictionaryapi
+// type JSON map[string]dictionaryapi
+
 type JSON map[string]interface{}
+
+var data []dictionaryapi
+
+// TODO: better error handling
+func request() (*http.Response, []byte) {
+	resp, err := http.Get("https://api.dictionaryapi.dev/api/v2/entries/en/" + LookupValue)
+	if err != nil {
+		// TODO: wtf does panic do
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("Response status:", resp.Status)
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return resp, body
+}
+
+// TODO: better error handling
+func Unmarshal() {
+	_, body := request()
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Unmarshalled data:", data)
+}
 
 func Search() {
 	if LookupValue == "" {
@@ -17,25 +77,16 @@ func Search() {
 		return
 	}
 
-	resp, err := http.Get("https://api.dictionaryapi.dev/api/v2/entries/en/" + LookupValue)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	fmt.Println("Response status:", resp.Body)
-
-	var data JSON
+	resp, _ := request()
 	decoder := json.NewDecoder(resp.Body)
 
 	// read open bracket
-	t, err := decoder.Token()
+	_, err := decoder.Token()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%T: %v\n", t, t)
 
-	// While the array contains values
+	// While the array (json [{...}]) contains values
 	for decoder.More() {
 		// decode an array value
 		err := decoder.Decode(&data)
@@ -47,22 +98,8 @@ func Search() {
 	}
 
 	// read closing brakcet
-	t, err = decoder.Token()
+	_, err = decoder.Token()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf("%T: %v\n", t, t)
-
-	// scanner := bufio.NewScanner(resp.Body)
-	// for i := 0; scanner.Scan() && i < 5; i++ {
-	// 	fmt.Println(scanner.Bytes())
-	// 	err = json.Unmarshal(scanner.Bytes(), &data)
-	// }
-	//
-	// if err := scanner.Err(); err != nil {
-	// 	panic(err)
-	// }
-
-	fmt.Println(data)
 }
