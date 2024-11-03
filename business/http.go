@@ -25,7 +25,7 @@ type phonetics struct {
 	Audio string `json:"audio,omitempty"`
 }
 
-type dictionaryapi struct {
+type dictionaryAPIFound struct {
 	Word      string      `json:"word"`
 	Phonetic  string      `json:"phonetic"`
 	Phonetics []phonetics `json:"phonetics"`
@@ -33,9 +33,8 @@ type dictionaryapi struct {
 	Meanings  []meanings  `json:"meanings"`
 }
 
-var Data []dictionaryapi
+var Data []dictionaryAPIFound
 
-// TODO: handle case where no results are found
 func request() []byte {
 	fmt.Fprintf(os.Stdout, "\nSearching for \"%s\" ... \n\n", LookupValue)
 
@@ -45,6 +44,12 @@ func request() []byte {
 		panic(err)
 	}
 	defer resp.Body.Close()
+
+	// Check for 404 in case of a word not being found
+	if resp.Status == "404 Not Found" {
+		fmt.Fprintf(os.Stdout, "Sorry, a definition for %s was not found. Feel free to try again.\n", LookupValue)
+		os.Exit(1)
+	}
 
 	// Read the response body into a []byte, err (JSON is all one line)
 	body, err := io.ReadAll(resp.Body)
