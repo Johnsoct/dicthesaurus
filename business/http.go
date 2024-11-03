@@ -58,44 +58,11 @@ func request() (*http.Response, []byte) {
 // TODO: better error handling
 func Unmarshal() {
 	_, body := request()
+
 	err := json.Unmarshal(body, &data)
 	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("Unmarshalled data:", data)
-
-	fmt.Println("test:", data)
-}
-
-func Search() {
-	if LookupValue == "" {
-		fmt.Fprintf(os.Stdout, "lookup value is nil")
-		return
+		fmt.Fprintf(os.Stderr, "decoding the data: %v", err)
 	}
 
-	resp, _ := request()
-	decoder := json.NewDecoder(resp.Body)
-
-	// read open bracket
-	_, err := decoder.Token()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// While the array (json [{...}]) contains values
-	for decoder.More() {
-		// decode an array value
-		err := decoder.Decode(&data)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Printf("%v\n", data)
-	}
-
-	// read closing brakcet
-	_, err = decoder.Token()
-	if err != nil {
-		log.Fatal(err)
-	}
+	fmt.Println("Unmarshaled data:", data[0])
 }
