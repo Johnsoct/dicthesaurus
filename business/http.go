@@ -36,14 +36,14 @@ type dictionaryapi struct {
 var data []dictionaryapi
 
 func request() []byte {
+	fmt.Fprintf(os.Stdout, "\nSearching for \"%s\" ... \n\n", LookupValue)
+
 	resp, err := http.Get("https://api.dictionaryapi.dev/api/v2/entries/en/" + LookupValue)
 	if err != nil {
 		// In case of panicking goroutine: terminates request(), reports error
 		panic(err)
 	}
 	defer resp.Body.Close()
-
-	fmt.Println("Response status:", resp.Status)
 
 	// Read the response body into a []byte, err (JSON is all one line)
 	body, err := io.ReadAll(resp.Body)
@@ -64,5 +64,5 @@ func Unmarshal() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Unmarshaled data:", data[0])
+	fmt.Println(data[0])
 }

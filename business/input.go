@@ -55,7 +55,3 @@ func init() {
 	// Globally store the word to look up
 	LookupValue = subcommand()
 }
-
-func Process() {
-	fmt.Fprintf(flag.CommandLine.Output(), "\nSearching for \"%s\" ...\n", LookupValue)
-}
