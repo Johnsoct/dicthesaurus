@@ -33,8 +33,9 @@ type dictionaryapi struct {
 	Meanings  []meanings  `json:"meanings"`
 }
 
-var data []dictionaryapi
+var Data []dictionaryapi
 
+// TODO: handle case where no results are found
 func request() []byte {
 	fmt.Fprintf(os.Stdout, "\nSearching for \"%s\" ... \n\n", LookupValue)
 
@@ -58,11 +59,9 @@ func request() []byte {
 func Unmarshal() {
 	body := request()
 
-	err := json.Unmarshal(body, &data)
+	err := json.Unmarshal(body, &Data)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "decoding the data: %v", err)
 		os.Exit(1)
 	}
-
-	fmt.Println(data[0])
 }
