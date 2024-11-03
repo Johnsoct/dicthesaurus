@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 )
@@ -36,32 +35,33 @@ type dictionaryapi struct {
 
 var data []dictionaryapi
 
-// TODO: better error handling
-func request() (*http.Response, []byte) {
+func request() []byte {
 	resp, err := http.Get("https://api.dictionaryapi.dev/api/v2/entries/en/" + LookupValue)
 	if err != nil {
-		// TODO: wtf does panic do
+		// In case of panicking goroutine: terminates request(), reports error
 		panic(err)
 	}
 	defer resp.Body.Close()
 
 	fmt.Println("Response status:", resp.Status)
 
+	// Read the response body into a []byte, err (JSON is all one line)
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintf(os.Stderr, "failed reading response body into []byte: %v", err)
+		os.Exit(1)
 	}
 
-	return resp, body
+	return body
 }
 
-// TODO: better error handling
 func Unmarshal() {
-	_, body := request()
+	body := request()
 
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "decoding the data: %v", err)
+		os.Exit(1)
 	}
 
 	fmt.Println("Unmarshaled data:", data[0])
