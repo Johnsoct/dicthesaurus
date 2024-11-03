@@ -9,6 +9,5 @@ import (
 // "github.com/Johnsoct/dicthesaurus/repository"
 
 func main() {
-	business.Process()
 	business.Unmarshal()
 }
