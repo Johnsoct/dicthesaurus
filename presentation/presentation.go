@@ -9,6 +9,10 @@ import (
 	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
+func boldText(text string) string {
+	return "\033[1m" + text + "\033[0m"
+}
+
 func prepareDefinition(definition repository.Definitions) string {
 	output := fmt.Sprintf("%s\n", definition.Definition) // Defaults to just the definition declaration
 
@@ -37,7 +41,7 @@ func prepareMeaning(meaning repository.Meanings) string {
 
 	return fmt.Sprintf(
 		"%s\n\n%s",
-		strings.ToUpper(partOfSpeech),
+		boldText(strings.ToUpper(partOfSpeech)),
 		strings.Join(definitions, ""),
 	)
 }
@@ -57,6 +61,7 @@ func prepareMeanings(data []repository.DictionaryAPIFound) []string {
 	return meanings
 }
 
+// TODO: implement merriam collegiate thesaurus
 // func prepareThesaurus(data []repository.DictionaryAPIFound) string {
 // 	return "working on it the thesaurus"
 // }
