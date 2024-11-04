@@ -11,9 +11,7 @@ import (
 var (
 	HFlag      = flag.Bool("h", false, "Show help")
 	WordSubCmd = flag.NewFlagSet("word", flag.ExitOnError)
-	DFlag      = WordSubCmd.Bool("d", false, "Display only dictionary results")
 	EFlag      = WordSubCmd.Bool("e", false, "Display the word in a sentence")
-	SSFlag     = WordSubCmd.Bool("ss", false, "Display format is 'sweet and simple'")
 	TFlag      = WordSubCmd.Bool("t", false, "Display only thesaurus results")
 	UDFlag     = WordSubCmd.Bool("ud", false, "Also query Urban Dictionary for results")
 
@@ -27,10 +25,8 @@ func manual() {
 	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", "\"dt linux\"")
 	fmt.Fprintf(flag.CommandLine.Output(), "\n")
 	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", "FLAGS")
-	fmt.Fprintf(flag.CommandLine.Output(), "\t%s\n", "-d   :  Only return a word's result from the dictionary")
 	fmt.Fprintf(flag.CommandLine.Output(), "\t%s\n", "-e   :  Include the word used in a sentence")
 	fmt.Fprintf(flag.CommandLine.Output(), "\t%s\n", "-t   :  Only return a word's result from the thesaurus")
-	fmt.Fprintf(flag.CommandLine.Output(), "\t%s\n", "-ss  :  Keep the output sweet and simple")
 	fmt.Fprintf(flag.CommandLine.Output(), "\t%s\n", "-ud  :  Return defintions from Urban Dictionary")
 	fmt.Fprintf(flag.CommandLine.Output(), "\n")
 }
