@@ -3,6 +3,7 @@ package main
 
 import (
 	"github.com/Johnsoct/dicthesaurus/business"
+	"github.com/Johnsoct/dicthesaurus/presentation"
 )
 
 //"github.com/Johnsoct/dicthesaurus/presentation"
@@ -10,4 +11,5 @@ import (
 
 func main() {
 	business.Unmarshal()
+	presentation.Output()
 }
