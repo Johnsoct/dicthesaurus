@@ -6,34 +6,11 @@ import (
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
-type definitions struct {
-	Definition string `json:"definition"`
-	Example    string `json:"example"`
-	Synonyms   []any  `json:"synonyms"`
-	Antonyms   []any  `json:"antonyms"`
-}
-
-type meanings struct {
-	PartOfSpeech string        `json:"partOfSpeech"`
-	Definitions  []definitions `json:"definitions"`
-}
-
-type phonetics struct {
-	Text  string `json:"text"`
-	Audio string `json:"audio,omitempty"`
-}
-
-type dictionaryAPIFound struct {
-	Word      string      `json:"word"`
-	Phonetic  string      `json:"phonetic"`
-	Phonetics []phonetics `json:"phonetics"`
-	Origin    string      `json:"origin"`
-	Meanings  []meanings  `json:"meanings"`
-}
-
-var Data []dictionaryAPIFound
+var Data []repository.DictionaryAPIFound
 
 func request() []byte {
 	fmt.Fprintf(os.Stdout, "\nSearching for \"%s\" ... \n\n", LookupValue)
