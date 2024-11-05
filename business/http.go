@@ -21,7 +21,7 @@ func convertResponseToBytes(response *http.Response) []byte {
 	return bytes
 }
 
-func GetDefintionInBytes(word string) []byte {
+func GetDefinition(word string) []byte {
 	fmt.Fprintf(os.Stdout, "\nSearching for \"%s\" ... \n\n", word)
 
 	resp, err := http.Get("https://api.dictionaryapi.dev/api/v2/entries/en/" + word)
@@ -40,7 +40,7 @@ func GetDefintionInBytes(word string) []byte {
 	return convertResponseToBytes(resp)
 }
 
-func UnmarshaledJSON(jsonBytes []byte) []repository.DictionaryAPIFound {
+func UnmarshalResponse(jsonBytes []byte) []repository.DictionaryAPIFound {
 	var data []repository.DictionaryAPIFound
 
 	err := json.Unmarshal(jsonBytes, &data)

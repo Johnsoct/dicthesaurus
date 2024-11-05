@@ -39,7 +39,7 @@ func cliUsageError() {
 	os.Exit(1)
 }
 
-func GetSubCommand() string {
+func GetLookupValue() string {
 	return lookupValue
 }
 

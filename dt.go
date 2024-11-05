@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	lookupValue := business.GetSubCommand()
-	response := business.GetDefintionInBytes(lookupValue)
-	data := business.UnmarshaledJSON(response)
+	lookupValue := business.GetLookupValue()
+	response := business.GetDefinition(lookupValue)
+	data := business.UnmarshalResponse(response)
 	presentation.Print(data)
 }
