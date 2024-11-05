@@ -10,12 +10,21 @@ import (
 	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
-var Data []repository.DictionaryAPIFound
+func convertResponseToBytes(response *http.Response) []byte {
+	// Read the response body into a []byte, err (JSON is all one line)
+	bytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "reading response body into []byte: %v", err)
+		os.Exit(1)
+	}
 
-func request() []byte {
-	fmt.Fprintf(os.Stdout, "\nSearching for \"%s\" ... \n\n", LookupValue)
+	return bytes
+}
 
-	resp, err := http.Get("https://api.dictionaryapi.dev/api/v2/entries/en/" + LookupValue)
+func GetDefintionInBytes(word string) []byte {
+	fmt.Fprintf(os.Stdout, "\nSearching for \"%s\" ... \n\n", word)
+
+	resp, err := http.Get("https://api.dictionaryapi.dev/api/v2/entries/en/" + word)
 	if err != nil {
 		// In case of panicking goroutine: terminates request(), reports error
 		panic(err)
@@ -24,26 +33,21 @@ func request() []byte {
 
 	// Check for 404 in case of a word not being found
 	if resp.Status == "404 Not Found" {
-		fmt.Fprintf(os.Stderr, "Sorry, a definition for %s was not found. Feel free to try again.\n", LookupValue)
+		fmt.Fprintf(os.Stderr, "Sorry, a definition for %s was not found. Feel free to try again.\n", word)
 		os.Exit(1)
 	}
 
-	// Read the response body into a []byte, err (JSON is all one line)
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed reading response body into []byte: %v", err)
-		os.Exit(1)
-	}
-
-	return body
+	return convertResponseToBytes(resp)
 }
 
-func Unmarshal() {
-	body := request()
+func UnmarshaledJSON(jsonBytes []byte) []repository.DictionaryAPIFound {
+	var data []repository.DictionaryAPIFound
 
-	err := json.Unmarshal(body, &Data)
+	err := json.Unmarshal(jsonBytes, &data)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "decoding the data: %v", err)
 		os.Exit(1)
 	}
+
+	return data
 }
