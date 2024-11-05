@@ -24,7 +24,7 @@ func request() []byte {
 
 	// Check for 404 in case of a word not being found
 	if resp.Status == "404 Not Found" {
-		fmt.Fprintf(os.Stdout, "Sorry, a definition for %s was not found. Feel free to try again.\n", LookupValue)
+		fmt.Fprintf(os.Stderr, "Sorry, a definition for %s was not found. Feel free to try again.\n", LookupValue)
 		os.Exit(1)
 	}
 
