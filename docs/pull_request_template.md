@@ -1,0 +1,5 @@
+- [ ] SRP
+- [ ] Open/Closed (open for extension, closed for modification)
+- [ ] Liskov Substitution (Subtypes should be substitutable for their base types)
+- [ ] Interface Segragation (Client should not be forced to depend on interfaces it doesn't use)
+- [ ] Dependency Inversion (high-level modules should not depend on low-level modules, but both should depend on abstractions (middleman)
