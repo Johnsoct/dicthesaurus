@@ -22,8 +22,6 @@ func convertResponseToBytes(response *http.Response) []byte {
 }
 
 func GetDefinition(word string) []byte {
-	fmt.Fprintf(os.Stdout, "\nSearching for \"%s\" ... \n\n", word)
-
 	resp, err := http.Get("https://api.dictionaryapi.dev/api/v2/entries/en/" + word)
 	if err != nil {
 		// In case of panicking goroutine: terminates request(), reports error

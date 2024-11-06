@@ -82,4 +82,6 @@ func init() {
 	overwriteFlagUsageDefault()
 	parseFlags()
 	updateState()
+
+	fmt.Printf("\nSearching for \"%s\" ... \n\n", subcommand())
 }
