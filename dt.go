@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	response := business.GetDefinition(repository.SUBCOMMAND)
-	data := business.UnmarshalResponse(response)
+	data := business.GetDefinition(repository.SUBCOMMAND)
 	presentation.Print(data)
 }
