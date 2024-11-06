@@ -6,11 +6,11 @@ package main
 import (
 	"github.com/Johnsoct/dicthesaurus/business"
 	"github.com/Johnsoct/dicthesaurus/presentation"
+	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
 func main() {
-	lookupValue := business.GetLookupValue()
-	response := business.GetDefinition(lookupValue)
+	response := business.GetDefinition(repository.SUBCOMMAND)
 	data := business.UnmarshalResponse(response)
 	presentation.Print(data)
 }

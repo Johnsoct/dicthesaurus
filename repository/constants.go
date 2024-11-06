@@ -13,10 +13,7 @@ var (
 		{"t", "Display only thesaurus results"},
 		{"ud", "Also query Urban Dictionary for results"},
 	}
-	SUBCOMMAND   = os.Args[1]
-	UsageExample = fmt.Sprintf("$ %s linux [FLAGS]", CMD)
-)
-
-const (
+	SUBCOMMAND    = os.Args[1]
+	UsageExample  = fmt.Sprintf("$ %s linux [FLAGS]", CMD)
 	UsageHeadline = "Dicthesaurus requires only a single command: the word you want to search for."
 )

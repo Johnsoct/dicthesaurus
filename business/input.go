@@ -15,8 +15,6 @@ var (
 	EFlag      = wordSubCmd.Bool("e", false, "Display the word in a sentence")
 	TFlag      = wordSubCmd.Bool("t", false, "Display only thesaurus results")
 	UDFlag     = wordSubCmd.Bool("ud", false, "Also query Urban Dictionary for results")
-
-	lookupValue string
 )
 
 func cliUsageError() {
@@ -36,45 +34,47 @@ func cliUsageError() {
 	os.Exit(1)
 }
 
-func GetLookupValue() string {
-	return lookupValue
-}
-
 func overwriteFlagUsageDefault() {
 	// Overwrite the default error output
 	flag.Usage = cliUsageError
 	wordSubCmd.Usage = cliUsageError
 }
 
-func parseFlags() {
-	// Handle no subcommand or flag
+func parseCommand() {
+	// Handle missing subcommand or flag
 	if len(os.Args) == 1 {
 		cliUsageError()
 	}
+}
 
-	// Handle the lack of a subcommand (word to search)
-	if strings.HasPrefix(os.Args[1], "-") {
-		cliUsageError()
-	}
-
+func parseFlags() {
 	// Handle the 3rd argument not being a flag
 	if len(os.Args) > 2 && !strings.HasPrefix(os.Args[2], "-") {
 		cliUsageError()
 	}
+}
+
+func parseSubcommand(subcommand string) {
+	// Handle the lack of a subcommand (word to search)
+	if strings.HasPrefix(subcommand, "-") {
+		cliUsageError()
+	}
+}
+
+func parse() {
+	// Cover the loopholes in "flag" parsing
+	parseCommand()
+	parseSubcommand(repository.SUBCOMMAND)
+	parseFlags()
 
 	// Parse each flag set
 	flag.Parse()
 	wordSubCmd.Parse(os.Args[2:]) // everything after the subcommand
 }
 
-func updateState() {
-	lookupValue = repository.SUBCOMMAND
-}
-
 func init() {
 	overwriteFlagUsageDefault()
-	parseFlags()
-	updateState()
+	parse()
 
 	fmt.Printf("\nSearching for \"%s\" ... \n\n", repository.SUBCOMMAND)
 }
