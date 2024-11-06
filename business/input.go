@@ -4,8 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
+
+	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
 var (
@@ -19,21 +20,17 @@ var (
 )
 
 func cliUsageError() {
-	base := filepath.Base(os.Args[0])
-
-	fmt.Fprintf(flag.CommandLine.Output(), "\nUsage: %s <word> [flags]\n\n", base)
-
-	flag.PrintDefaults()
-
 	fmt.Fprintf(flag.CommandLine.Output(), "\n")
-	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", "Dicthesaurus requires only a single command: the word you want to search for.")
+	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", repository.UsageHeadline)
 	fmt.Fprintf(flag.CommandLine.Output(), "\n")
-	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", "\"dt linux\"")
+	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", repository.UsageExample)
 	fmt.Fprintf(flag.CommandLine.Output(), "\n")
 	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", "FLAGS")
-	fmt.Fprintf(flag.CommandLine.Output(), "\t%s\n", "-e   :  Include the word used in a sentence")
-	fmt.Fprintf(flag.CommandLine.Output(), "\t%s\n", "-t   :  Only return a word's result from the thesaurus")
-	fmt.Fprintf(flag.CommandLine.Output(), "\t%s\n", "-ud  :  Return defintions from Urban Dictionary")
+
+	for _, v := range repository.Flags {
+		fmt.Fprintf(flag.CommandLine.Output(), "\t-%s   :  %s\n", v.Flag, v.Description)
+	}
+
 	fmt.Fprintf(flag.CommandLine.Output(), "\n")
 
 	os.Exit(1)
@@ -70,12 +67,8 @@ func parseFlags() {
 	wordSubCmd.Parse(os.Args[2:]) // everything after the subcommand
 }
 
-func subcommand() string {
-	return os.Args[1]
-}
-
 func updateState() {
-	lookupValue = subcommand()
+	lookupValue = repository.SUBCOMMAND
 }
 
 func init() {
@@ -83,5 +76,5 @@ func init() {
 	parseFlags()
 	updateState()
 
-	fmt.Printf("\nSearching for \"%s\" ... \n\n", subcommand())
+	fmt.Printf("\nSearching for \"%s\" ... \n\n", repository.SUBCOMMAND)
 }
