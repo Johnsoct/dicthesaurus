@@ -1,5 +1,12 @@
 package repository
 
+// Constants data structures
+type Flag struct {
+	Flag        string
+	Description string
+}
+
+// Dictionary API data structures
 type Definitions struct {
 	Definition string   `json:"definition"`
 	Example    string   `json:"example,omitempty"`
