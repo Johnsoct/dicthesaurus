@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/Johnsoct/dicthesaurus/business"
 	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
@@ -156,33 +157,38 @@ func prepareSenseSequences(data []repository.MWDResult) Definitions {
 				definitions[v.Fl][verbDivider] = make(SenseSequences)
 			}
 
-			// Each index of sseq (sn - sense number) is a group of senses
-			// At each index is an array of the senses within that group
-			for sn, sseq := range def.Sseq {
+			if *business.SSFlag {
+				definitions[v.Fl][verbDivider][0] = v.Shortdef
+			} else {
+				// Each index of sseq (sn - sense number) is a group of senses
+				// At each index is an array of the senses within that group
+				for sn, sseq := range def.Sseq {
 
-				// Do not overwrite sense sequences; will later append to
-				if _, ok := definitions[v.Fl][verbDivider][sn]; !ok {
-					definitions[v.Fl][verbDivider][sn] = make(Senses, 0)
-				}
-
-				for _, sense := range sseq {
-					// Ignore useless defining texts
-					if sense[1].Dt == nil {
-						continue
-					}
-					if sense[1].Dt[0][0] != "text" {
-						continue
+					// Do not overwrite sense sequences; will later append to
+					if _, ok := definitions[v.Fl][verbDivider][sn]; !ok {
+						definitions[v.Fl][verbDivider][sn] = make(Senses, 0)
 					}
 
-					// Only capturing the first index of dt (other indexes are not immediate definitions)
-					dt := sense[1].Dt[0][1]
+					for _, sense := range sseq {
+						// Ignore useless defining texts
+						if sense[1].Dt == nil {
+							continue
+						}
+						if sense[1].Dt[0][0] != "text" {
+							continue
+						}
 
-					// Make sure dt is a string value (definition)
-					if d, ok := dt.(string); ok {
-						definitions[v.Fl][verbDivider][sn] = append(definitions[v.Fl][verbDivider][sn], d)
+						// Only capturing the first index of dt (other indexes are not immediate definitions)
+						dt := sense[1].Dt[0][1]
+
+						// Make sure dt is a string value (definition)
+						if d, ok := dt.(string); ok {
+							definitions[v.Fl][verbDivider][sn] = append(definitions[v.Fl][verbDivider][sn], d)
+						}
 					}
 				}
 			}
+
 		}
 	}
 
