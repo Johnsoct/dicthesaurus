@@ -13,8 +13,8 @@ var (
 	HFlag      = flag.Bool("h", false, "Show help")
 	wordSubCmd = flag.NewFlagSet("word", flag.ExitOnError)
 	EFlag      = wordSubCmd.Bool("e", false, "Display the word in a sentence")
+	SSFlag     = wordSubCmd.Bool("ss", false, "Display a short and sweet version of the definition")
 	TFlag      = wordSubCmd.Bool("t", false, "Display only thesaurus results")
-	UDFlag     = wordSubCmd.Bool("ud", false, "Also query Urban Dictionary for results")
 )
 
 func cliUsageError() {
