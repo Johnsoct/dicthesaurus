@@ -1,5 +1,7 @@
 # Overview
 
+// TODO: add gif of CLI in action
+
 Dicthesaurus is a dictionary and thesaurus CLI program built only with Go standard packages. 
 
 Currently, it makes use of the [Free Dictionary API](https://dictionaryapi.dev/).
@@ -97,3 +99,9 @@ Flags can be used in either format: `-d, --d`
     - `\033[0m` resets the escaped text modifications (or ends an ongoing one)
     - Check out "ECMA-48 Select Graphic Rendition (SGR)" codes > [Linux console codes](https://man7.org/linux/man-pages/man4/console_codes.4.html)
 - []string can be combined into a string with `strings.Join`
+- When making an empty slice, `make([]string, length)`, creates a slice with zero values until the "length", which means if you're only appending to a slice and printing out each slice element, the first "length" elements will be empty
+- Implementing `.env` files with `joho/godotenv` package, which also was my first time using an external, non-standard library package
+    - Within your project RWD, `go get "github.com/joho/godotenv"`
+    - `go mod tidy`
+    - `go.mod` should contain `require github.com/joho/godotenv v1.x.x`
+    - `go.sum` should contain two lines pointing to "github.com/joho/godotenv"
