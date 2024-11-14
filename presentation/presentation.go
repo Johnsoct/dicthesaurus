@@ -23,16 +23,58 @@ func boldText(text string) string {
 	return "\033[1m" + text + "\033[0m"
 }
 
-func headerText(text string) string {
-	return "\033[47;30m" + text + "\033[0m"
+func underlineText(text string) string {
+	return "\033[4m" + text + "\033[0m"
 }
 
-func upperCaseText(text string) string {
-	return "" + text + "k"
+// Must be applied before any other console code because of strings.toUpper
+func uppercaseText(text string) string {
+	return "\033[1;4m" + strings.ToUpper(text) + "\033[0m"
 }
 
-func stripBoldColonTokens(text string) string {
-	return strings.ReplaceAll(text, "{bc}", "")
+func replaceTokens(text string) string {
+	type Replace struct {
+		submatch  string
+		replaceFn func(text string) string
+	}
+	replaces := map[string]Replace{
+		`\{a_link\|(\w+)\}`: {
+			replaceFn: func(text string) string {
+				return underlineText(text)
+			},
+			submatch: `\|(\w+)`,
+		},
+		`\{sx\|(\w+)\|*\}`: {
+			replaceFn: func(text string) string {
+				uppercased := uppercaseText(text)
+				underlined := underlineText(uppercased)
+				return underlined
+			},
+			submatch: `\|(\w+)`,
+		},
+	}
+
+	replaced := text
+
+	for regex, replace := range replaces {
+		re := regexp.MustCompile(regex)
+		subre := regexp.MustCompile(replace.submatch)
+		submatches := 0
+
+		replaced = re.ReplaceAllStringFunc(replaced, func(substring string) string {
+			submatch := replace.replaceFn(subre.FindAllStringSubmatch(substring, -1)[0][1])
+
+			if submatches == 0 {
+				submatch = ": " + submatch
+			}
+
+			submatches++
+
+			return submatch
+		})
+	}
+
+	return replaced
 }
 
 func stripCrossReferenceGroupingTokens(text string) string {
@@ -40,24 +82,46 @@ func stripCrossReferenceGroupingTokens(text string) string {
 	return re.ReplaceAllLiteralString(text, "")
 }
 
-func stripCrossReferenceTokens(text string) string {
-	firstHalf := strings.ReplaceAll(text, "{sx|", "")
-	return strings.ReplaceAll(firstHalf, "||}", "")
+func stripTokens(text string) string {
+	prefixes := []string{
+		`{bc}`,
+		`{sx|`,
+	}
+	suffixes := []string{
+		`\|*}`,
+		`}`,
+		`\|+[0-9]+[a-z]*}`,
+	}
+
+	stripped := text
+
+	for _, v := range prefixes {
+		re := regexp.MustCompile(v)
+		stripped = re.ReplaceAllString(stripped, "")
+	}
+
+	for _, v := range suffixes {
+		re := regexp.MustCompile(v)
+		stripped = re.ReplaceAllString(stripped, "")
+	}
+
+	return stripped
 }
 
 func formatSenseText(text string) string {
-	t := stripBoldColonTokens(text)
-	t = stripCrossReferenceTokens(t)
-	t = stripCrossReferenceGroupingTokens(t)
-	return t
+	// Replace before stripping... hehe (replace relies on the tokens)
+	replaced := replaceTokens(text)
+	stripped := stripTokens(replaced)
+
+	return stripped
 }
 
 func formatSequence(sseqn int, sn int, text string) string {
 	// Do not prent the sseq number for every sense
 	if sn == 0 {
-		return fmt.Sprintf("%d\t%d : %s", sseqn+1, sn+1, formatSenseText(text))
+		return fmt.Sprintf("%d\t%s", sseqn+1, formatSenseText(text))
 	}
-	return fmt.Sprintf("\t%d : %s", sn+1, formatSenseText(text))
+	return fmt.Sprintf("\t%s", formatSenseText(text))
 }
 
 func prepareSenseSequences(data []repository.MWDResult) Definitions {
@@ -136,7 +200,7 @@ func Print(data []repository.MWDResult) {
 
 	for fl := range definitions {
 		for divider, value := range definitions[fl] {
-			fmt.Printf("\n\n\t%s\n\n", headerText(strings.ToUpper(divider)))
+			fmt.Printf("\n\n\t%s\n\n", uppercaseText(divider))
 
 			// Iterate through the sequences in order (matches Merriam-Webster's results)
 			for i := range len(value) {
