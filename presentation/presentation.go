@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/Johnsoct/dicthesaurus/business"
@@ -18,6 +19,7 @@ type (
 type (
 	VerbDivider map[string]SenseSequences
 	Definitions map[string]VerbDivider
+	Thesaurus   map[string][][]string
 )
 
 func boldText(text string) string {
@@ -109,6 +111,21 @@ func stripTokens(text string) string {
 	return stripped
 }
 
+func formatAntsSyns(s []string) string {
+	rowFormat := "\t" + strings.Repeat("%-15s", len(s)) + "\n\n"
+	anys := make([]any, len(s))
+
+	for i, v := range s {
+		anys[i] = v
+	}
+
+	return fmt.Sprintf(rowFormat, anys...)
+}
+
+func formatHeader(h string) string {
+	return fmt.Sprintf("\n\n\t%s\n\n", uppercaseText(h))
+}
+
 func formatSenseText(text string) string {
 	// Replace before stripping... hehe (replace relies on the tokens)
 	replaced := replaceTokens(text)
@@ -125,7 +142,19 @@ func formatSequence(sseqn int, sn int, text string) string {
 	return fmt.Sprintf("\t%s", formatSenseText(text))
 }
 
-func prepareSenseSequences(data []repository.MWDResult) Definitions {
+func prepareAntonyms(data []repository.MWTResult) [][]string {
+	antonyms := make([][]string, len(data))
+
+	for i, v := range data {
+		for _, ants := range v.Meta.Ants {
+			antonyms[i] = ants
+		}
+	}
+
+	return antonyms
+}
+
+func prepareDefinitions(data []repository.MWDResult) Definitions {
 	definitions := make(Definitions)
 
 	// data could have multiple results
@@ -195,18 +224,35 @@ func prepareSenseSequences(data []repository.MWDResult) Definitions {
 	return definitions
 }
 
-func Print(data []repository.MWDResult) {
-	if data == nil {
-		fmt.Println("I'm not sure how you got here, but something is wrong. Sorry, try again.")
-		os.Exit(1)
+func prepareSynonyms(data []repository.MWTResult) Thesaurus {
+	synonyms := make(Thesaurus)
+
+	for _, v := range data {
+		// Ignore all the synonyms for stems off of the SUBCOMMAND
+		if i := slices.Compare(v.Meta.Stems, []string{repository.SUBCOMMAND}); i != 0 {
+			continue
+		}
+
+		// Do not overwrite synonyms[v.Fl]
+		if _, ok := synonyms[v.Fl]; !ok {
+			synonyms[v.Fl] = make([][]string, len(v.Meta.Syns))
+		}
+
+		for i, syns := range v.Meta.Syns {
+			synonyms[v.Fl][i] = syns
+		}
 	}
 
+	return synonyms
+}
+
+func printDictionary(data []repository.MWDResult) {
 	// Example of verbs: definitions["verb"]["intransitive verb"]
-	definitions := prepareSenseSequences(data)
+	definitions := prepareDefinitions(data)
 
 	for fl := range definitions {
 		for divider, value := range definitions[fl] {
-			fmt.Printf("\n\n\t%s\n\n", uppercaseText(divider))
+			fmt.Println(formatHeader(divider))
 
 			// Iterate through the sequences in order (matches Merriam-Webster's results)
 			for i := range len(value) {
@@ -217,5 +263,37 @@ func Print(data []repository.MWDResult) {
 				fmt.Println()
 			}
 		}
+	}
+}
+
+func printThesaurus(data []repository.MWTResult) {
+	synonyms := prepareSynonyms(data)
+	// antonyms := prepareAntonyms(data)
+
+	for fl, rows := range synonyms {
+		fmt.Println(formatHeader(fl))
+
+		for _, row := range rows {
+			fmt.Println(formatAntsSyns(row))
+		}
+	}
+
+	// for i, fl := range antonyms {
+	// 	fmt.Println(fl)
+	// 	fmt.Println(formatAntsSyns(antonyms[fl]))
+	// }
+}
+
+func Print[T repository.APIData](data any) {
+	if data == nil {
+		fmt.Println("The API response was empty. Please check your API keys.")
+		os.Exit(1)
+	}
+
+	switch data := data.(type) {
+	case []repository.MWDResult:
+		printDictionary(data)
+	case []repository.MWTResult:
+		printThesaurus(data)
 	}
 }

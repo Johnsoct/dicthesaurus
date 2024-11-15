@@ -76,5 +76,11 @@ func init() {
 	overwriteFlagUsageDefault()
 	parse()
 
-	fmt.Printf("\nSearching for \"%s\" ... \n\n", repository.SUBCOMMAND)
+	searchingFor := "dictionary"
+
+	if *TFlag {
+		searchingFor = "thesaurus"
+	}
+
+	fmt.Printf("\n\tSearching %s for \"%s\" ... \n\n", searchingFor, repository.SUBCOMMAND)
 }

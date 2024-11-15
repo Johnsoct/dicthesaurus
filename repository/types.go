@@ -38,8 +38,11 @@ type MWMeta struct {
 	// The section the entry belongs to (print, biographical, geographical, foreign words, phrases)
 	Section string `json:"section"`
 	// List of entry's headwords, variants, inflections, undefined entry words, and defined run-on phrases
-	Stems     []string `json:"stems"`
-	Offensive bool     `json:"offensive"`
+	Stems []string `json:"stems"`
+	// List []Synonyms
+	Syns      [][]string `json:"syns"`
+	Ants      [][]string `json:"ants"`
+	Offensive bool       `json:"offensive"`
 }
 
 type MWPrs struct {
@@ -67,7 +70,11 @@ type MWSound struct {
 }
 
 // Root Structs
+type APIData interface {
+	[]MWDResult | []MWTResult
+}
 
+// TODO: I don't think we need separate root typyes
 type MWDResult struct {
 	Date string `json:"date"`
 	// Headword information
@@ -87,4 +94,8 @@ type MWDResult struct {
 	Shortdef []string `json:"shortdef"`
 }
 
-type MWTResult struct{}
+type MWTResult struct {
+	// Functional label - grammatical function of a headword
+	Fl   string `json:"fl"`
+	Meta MWMeta
+}

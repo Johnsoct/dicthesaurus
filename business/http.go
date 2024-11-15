@@ -9,8 +9,17 @@ import (
 	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
-func GetDefinition(word string) []repository.MWDResult {
-	resp, err := http.Get("https://www.dictionaryapi.com/api/v3/references/collegiate/json/" + word + "?key=" + os.Getenv("MERRIAM_WEBSTER_DICTIONARY_API_KEY"))
+type MWResponse interface {
+	[]repository.MWDResult | []repository.MWTResult
+}
+
+func getMeriamWebster[T MWResponse](word, endpoint string) T {
+	API_KEY := "MERRIAM_WEBSTER_DICTIONARY_API_KEY"
+	if endpoint == "thesaurus" {
+		API_KEY = "MERRIAM_WEBSTER_THESAURUS_API_KEY"
+	}
+
+	resp, err := http.Get("https://www.dictionaryapi.com/api/v3/references/" + endpoint + "/json/" + word + "?key=" + os.Getenv(API_KEY))
 	if err != nil {
 		// In case of panicking goroutine: terminates request(), reports error
 		panic(err)
@@ -23,8 +32,17 @@ func GetDefinition(word string) []repository.MWDResult {
 		os.Exit(1)
 	}
 
-	var data []repository.MWDResult
+	var data T
+
 	json.NewDecoder(resp.Body).Decode(&data)
 
 	return data
+}
+
+func GetDefinition(word string) []repository.MWDResult {
+	return getMeriamWebster[[]repository.MWDResult](word, "collegiate")
+}
+
+func GetThesaurus(word string) []repository.MWTResult {
+	return getMeriamWebster[[]repository.MWTResult](word, "thesaurus")
 }
