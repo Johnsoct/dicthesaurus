@@ -112,7 +112,7 @@ func stripTokens(text string) string {
 }
 
 func formatAntsSyns(s []string) string {
-	rowFormat := "\t" + strings.Repeat("%-15s", len(s)) + "\n\n"
+	rowFormat := strings.Repeat("%-15s", len(s))
 	anys := make([]any, len(s))
 
 	for i, v := range s {
@@ -123,7 +123,12 @@ func formatAntsSyns(s []string) string {
 }
 
 func formatHeader(h string) string {
-	return fmt.Sprintf("\n\n\t%s\n\n", uppercaseText(h))
+	coloredText := "\033[47;30m" + uppercaseText(h) + "\033[0m"
+	return fmt.Sprintf("\n\n\n\t%s\n", coloredText)
+}
+
+func formatRow(r string) string {
+	return fmt.Sprintf("\n\t%s", r)
 }
 
 func formatSenseText(text string) string {
@@ -137,21 +142,9 @@ func formatSenseText(text string) string {
 func formatSequence(sseqn int, sn int, text string) string {
 	// Do not prent the sseq number for every sense
 	if sn == 0 {
-		return fmt.Sprintf("%d\t%s", sseqn+1, formatSenseText(text))
+		return fmt.Sprintf("\n%d\t%s", sseqn+1, formatSenseText(text))
 	}
-	return fmt.Sprintf("\t%s", formatSenseText(text))
-}
-
-func prepareAntonyms(data []repository.MWTResult) [][]string {
-	antonyms := make([][]string, len(data))
-
-	for i, v := range data {
-		for _, ants := range v.Meta.Ants {
-			antonyms[i] = ants
-		}
-	}
-
-	return antonyms
+	return fmt.Sprintf("\t%s", formatRow(formatSenseText(text)))
 }
 
 func prepareDefinitions(data []repository.MWDResult) Definitions {
@@ -224,26 +217,31 @@ func prepareDefinitions(data []repository.MWDResult) Definitions {
 	return definitions
 }
 
-func prepareSynonyms(data []repository.MWTResult) Thesaurus {
-	synonyms := make(Thesaurus)
+func prepareThesauruses(data []repository.MWTResult, whichType string) Thesaurus {
+	sas := make(Thesaurus)
 
 	for _, v := range data {
-		// Ignore all the synonyms for stems off of the SUBCOMMAND
+		values := v.Meta.Syns
+		if whichType == "antonyms" {
+			values = v.Meta.Ants
+		}
+
+		// Ignore all the sas for stems off of the SUBCOMMAND
 		if i := slices.Compare(v.Meta.Stems, []string{repository.SUBCOMMAND}); i != 0 {
 			continue
 		}
 
-		// Do not overwrite synonyms[v.Fl]
-		if _, ok := synonyms[v.Fl]; !ok {
-			synonyms[v.Fl] = make([][]string, len(v.Meta.Syns))
+		// Do not overwrite sas[v.Fl]
+		if _, ok := sas[v.Fl]; !ok {
+			sas[v.Fl] = make([][]string, len(values))
 		}
 
-		for i, syns := range v.Meta.Syns {
-			synonyms[v.Fl][i] = syns
+		for i, val := range values {
+			sas[v.Fl][i] = val
 		}
 	}
 
-	return synonyms
+	return sas
 }
 
 func printDictionary(data []repository.MWDResult) {
@@ -259,29 +257,32 @@ func printDictionary(data []repository.MWDResult) {
 				for sn, sense := range value[i] {
 					fmt.Println(formatSequence(i, sn, sense))
 				}
-
-				fmt.Println()
 			}
 		}
 	}
 }
 
 func printThesaurus(data []repository.MWTResult) {
-	synonyms := prepareSynonyms(data)
-	// antonyms := prepareAntonyms(data)
-
-	for fl, rows := range synonyms {
-		fmt.Println(formatHeader(fl))
-
-		for _, row := range rows {
-			fmt.Println(formatAntsSyns(row))
-		}
+	synonyms := prepareThesauruses(data, "synonyms")
+	antonyms := prepareThesauruses(data, "antonyms")
+	both := map[string]Thesaurus{
+		"synonyms": synonyms,
+		"antonyms": antonyms,
 	}
 
-	// for i, fl := range antonyms {
-	// 	fmt.Println(fl)
-	// 	fmt.Println(formatAntsSyns(antonyms[fl]))
-	// }
+	for key := range both {
+		for fl, rows := range both[key] {
+			if len(rows) == 0 {
+				break
+			}
+
+			fmt.Println(formatHeader(fl))
+
+			for _, row := range rows {
+				fmt.Println(formatRow(formatAntsSyns(row)))
+			}
+		}
+	}
 }
 
 func Print[T repository.APIData](data any) {
@@ -296,4 +297,6 @@ func Print[T repository.APIData](data any) {
 	case []repository.MWTResult:
 		printThesaurus(data)
 	}
+
+	fmt.Println()
 }

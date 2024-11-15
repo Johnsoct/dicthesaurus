@@ -82,5 +82,5 @@ func init() {
 		searchingFor = "thesaurus"
 	}
 
-	fmt.Printf("\n\tSearching %s for \"%s\" ... \n\n", searchingFor, repository.SUBCOMMAND)
+	fmt.Printf("\n\tSearching %s for \"%s\" ...\n", searchingFor, repository.SUBCOMMAND)
 }
