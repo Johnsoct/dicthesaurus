@@ -54,6 +54,31 @@ Flags can be used in either format: `-d, --d`
     - The antonym and synonym fields are blank 99% of the time, and there isn't a "free thesaurus API" to match
 - Thesaurus flag does not work given the antonym and synonym fields are always empty in the API responses
 
+## Version 2 Review
+- Becuase it was a personal project, I was a little too relaxed with making small commits, and sequentially performing really small reviews and PRs, which would have taken less time, mental energy, and taught me the SOLID principles more quickly, which I hope would indicate all subsequent PRs would require less effort to review because I was writing better code...
+    - Lesson: Small tasks, commit often, PR often, review often (AKA small pieces)
+- While reviewing similarity of the output formatting between the dictionary and thesaurus I realized I should have came up with a presentation layout beforehand; however, this is what I happily came up with based on a few basic text-based design principles (white space, weight, case)
+    ```text
+    \n
+    "Searching [dictionary/thesaurus] for [subcommand] ..."
+    \n
+    \n
+    \n
+    [Part of Speech]
+    \n
+    \n
+    [Value]
+    \n
+    [Value]
+    \n
+    \n
+    \n
+    [Part of Speech]
+    ...repeat values and parts of speech until end
+    --- end of output ---
+    \n
+    ```
+
 ## What I learned
 
 - What Go considers a package
