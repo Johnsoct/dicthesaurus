@@ -11,7 +11,7 @@ var (
 	Flags = []Flag{
 		{"e", "Display the word in a sentence"},
 		{"ss", "Display a short and sweet version of the definition"},
-		{"t", "Display only thesaurus results"},
+		{"t", "Display thesaurus instead of dictionary results"},
 	}
 	SUBCOMMAND    = os.Args[1]
 	UsageExample  = fmt.Sprintf("$ %s linux [FLAGS]", CMD)
