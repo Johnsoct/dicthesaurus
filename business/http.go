@@ -3,16 +3,11 @@ package business
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/Johnsoct/dicthesaurus/repository"
 )
-
-func customUnmarshalJSON(data []byte) error {
-         http.ResponseWriter, r *http.Request
-}
 
 func getMeriamWebster(word, endpoint string) []repository.MWResult {
 	API_KEY := "MERRIAM_WEBSTER_DICTIONARY_API_KEY"
@@ -37,7 +32,9 @@ func getMeriamWebster(word, endpoint string) []repository.MWResult {
 
 	decodeErr := json.NewDecoder(resp.Body).Decode(&data)
 	if decodeErr != nil {
-		log.Fatal(decodeErr)
+		// TODO: handle Decode not liking decoding a tuple([string, {...}]) into MWResult.Def.Sseq
+		// Most likely need a custom unmarshal function
+		// fmt.Printf("error decoding JSON from Meriam-Webster %v", decodeErr)
 	}
 
 	return data

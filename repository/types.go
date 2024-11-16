@@ -8,6 +8,13 @@ type Flag struct {
 
 // API data structures
 
+type MWSense struct {
+	// Sense number
+	Sn string `json:"sn"`
+	//
+	Dt [][]any `json:"dt"`
+}
+
 type MWResult struct {
 	Date string `json:"date"`
 	// Headword information
@@ -17,14 +24,8 @@ type MWResult struct {
 		// Group of all the sense sequences and verb dividers for each headword or defined run-on phrase
 		// Sense sequence = contains series of senses and subsenses, ordered by sense numbers
 		Sseq [][][]struct {
-			// Value string `json:"-,omitempty"`
-			Label string `json:"label"`
-			Sense struct {
-				// Sense number
-				Sn string `json:"sn"`
-				//
-				Dt [][]any `json:"dt"`
-			} `json:"sense"`
+			string
+			MWSense
 		} `json:"sseq"`
 	} `json:"def"`
 	// Etymology
