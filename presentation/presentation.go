@@ -9,6 +9,7 @@ import (
 
 	"github.com/Johnsoct/dicthesaurus/business"
 	"github.com/Johnsoct/dicthesaurus/repository"
+	"github.com/Johnsoct/dicthesaurus/utils"
 )
 
 type (
@@ -22,19 +23,6 @@ type (
 	Thesaurus   map[string][][]string
 )
 
-func boldText(text string) string {
-	return "\033[1m" + text + "\033[0m"
-}
-
-func underlineText(text string) string {
-	return "\033[4m" + text + "\033[0m"
-}
-
-// Must be applied before any other console code because of strings.toUpper
-func uppercaseText(text string) string {
-	return "\033[1;4m" + strings.ToUpper(text) + "\033[0m"
-}
-
 func replaceTokens(text string) string {
 	type Replace struct {
 		submatch  string
@@ -43,14 +31,14 @@ func replaceTokens(text string) string {
 	replaces := map[string]Replace{
 		`\{a_link\|(\w+)\}`: {
 			replaceFn: func(text string) string {
-				return underlineText(text)
+				return utils.UnderlineText(text)
 			},
 			submatch: `\|(\w+)`,
 		},
 		`\{sx\|(\w+)\|*\}`: {
 			replaceFn: func(text string) string {
-				uppercased := uppercaseText(text)
-				underlined := underlineText(uppercased)
+				uppercased := utils.UppercaseText(text)
+				underlined := utils.UnderlineText(uppercased)
 				return underlined
 			},
 			submatch: `\|(\w+)`,
@@ -122,15 +110,6 @@ func formatAntsSyns(s []string) string {
 	return fmt.Sprintf(rowFormat, anys...)
 }
 
-func formatHeader(h string) string {
-	coloredText := "\033[47;30m" + uppercaseText(h) + "\033[0m"
-	return fmt.Sprintf("\n\n\n\t%s\n", coloredText)
-}
-
-func formatRow(r string) string {
-	return fmt.Sprintf("\n\t%s", r)
-}
-
 func formatSenseText(text string) string {
 	// Replace before stripping... hehe (replace relies on the tokens)
 	replaced := replaceTokens(text)
@@ -144,7 +123,7 @@ func formatSequence(sseqn int, sn int, text string) string {
 	if sn == 0 {
 		return fmt.Sprintf("\n%d\t%s", sseqn+1, formatSenseText(text))
 	}
-	return fmt.Sprintf("\t%s", formatRow(formatSenseText(text)))
+	return fmt.Sprintf("\t%s", utils.FormatRow(formatSenseText(text)))
 }
 
 func prepareDefinitions(data []repository.MWResult) Definitions {
@@ -228,7 +207,7 @@ func prepareThesauruses(data []repository.MWResult, whichType string) Thesaurus 
 		}
 
 		// Ignore all the sas for stems off of the SUBCOMMAND
-		if i := slices.Compare(v.Meta.Stems, []string{repository.SUBCOMMAND}); i != 0 {
+		if i := slices.Compare(v.Meta.Stems, []string{business.ParseSubcmd(os.Args)}); i != 0 {
 			continue
 		}
 
@@ -251,7 +230,7 @@ func printDictionary(data []repository.MWResult) {
 
 	for fl := range definitions {
 		for divider, value := range definitions[fl] {
-			fmt.Println(formatHeader(divider))
+			fmt.Println(utils.FormatHeader(divider))
 
 			// Iterate through the sequences in order (matches Merriam-Webster's results)
 			for i := range len(value) {
@@ -277,10 +256,10 @@ func printThesaurus(data []repository.MWResult) {
 				break
 			}
 
-			fmt.Println(formatHeader(fl))
+			fmt.Println(utils.FormatHeader(fl))
 
 			for _, row := range rows {
-				fmt.Println(formatRow(formatAntsSyns(row)))
+				fmt.Println(utils.FormatRow(formatAntsSyns(row)))
 			}
 		}
 	}
