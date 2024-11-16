@@ -23,7 +23,7 @@ type (
 	Thesaurus   map[string][][]string
 )
 
-func replaceTokens(text string) string {
+func formatValueBetweenTokens(text string) string {
 	type Replace struct {
 		submatch  string
 		replaceFn func(text string) string
@@ -68,33 +68,42 @@ func replaceTokens(text string) string {
 	return replaced
 }
 
-func stripCrossReferenceGroupingTokens(text string) string {
-	re := regexp.MustCompile(`\|+[0-9]+[a-z]*}`)
-	return re.ReplaceAllLiteralString(text, "")
-}
-
-func stripTokens(text string) string {
+func stripPrefixTokens(text string) string {
+	stripped := text
 	prefixes := []string{
 		`{bc}`,
 		`{sx|`,
 	}
-	suffixes := []string{
-		`\|*}`,
-		`}`,
-		`\|+[0-9]+[a-z]*}`,
-	}
-
-	stripped := text
 
 	for _, v := range prefixes {
 		re := regexp.MustCompile(v)
 		stripped = re.ReplaceAllString(stripped, "")
 	}
 
+	return stripped
+}
+
+func stripSuffixTokens(text string) string {
+	stripped := text
+	suffixes := []string{
+		`\|*}`,
+		`}`,
+		`\|+[0-9]+[a-z]*}`,
+	}
+
 	for _, v := range suffixes {
 		re := regexp.MustCompile(v)
 		stripped = re.ReplaceAllString(stripped, "")
 	}
+
+	return stripped
+}
+
+func stripTokens(text string) string {
+	stripped := text
+
+	stripped = stripPrefixTokens(text)
+	stripped = stripSuffixTokens(text)
 
 	return stripped
 }
@@ -112,7 +121,7 @@ func formatAntsSyns(s []string) string {
 
 func formatSenseText(text string) string {
 	// Replace before stripping... hehe (replace relies on the tokens)
-	replaced := replaceTokens(text)
+	replaced := formatValueBetweenTokens(text)
 	stripped := stripTokens(replaced)
 
 	return stripped
