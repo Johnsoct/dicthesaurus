@@ -1,13 +1,5 @@
 package repository
 
-// Constants data structures
-type Flag struct {
-	Flag        string
-	Description string
-}
-
-// API data structures
-
 type MWSense struct {
 	// Sense number
 	Sn string `json:"sn"`
