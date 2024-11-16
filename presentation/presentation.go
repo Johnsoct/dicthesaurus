@@ -147,7 +147,7 @@ func formatSequence(sseqn int, sn int, text string) string {
 	return fmt.Sprintf("\t%s", formatRow(formatSenseText(text)))
 }
 
-func prepareDefinitions(data []repository.MWDResult) Definitions {
+func prepareDefinitions(data []repository.MWResult) Definitions {
 	definitions := make(Definitions)
 
 	// data could have multiple results
@@ -193,6 +193,7 @@ func prepareDefinitions(data []repository.MWDResult) Definitions {
 
 					for _, sense := range sseq {
 						// Ignore useless defining texts
+						fmt.Println(sense)
 						if sense[1].Dt == nil {
 							continue
 						}
@@ -217,7 +218,7 @@ func prepareDefinitions(data []repository.MWDResult) Definitions {
 	return definitions
 }
 
-func prepareThesauruses(data []repository.MWTResult, whichType string) Thesaurus {
+func prepareThesauruses(data []repository.MWResult, whichType string) Thesaurus {
 	sas := make(Thesaurus)
 
 	for _, v := range data {
@@ -244,7 +245,7 @@ func prepareThesauruses(data []repository.MWTResult, whichType string) Thesaurus
 	return sas
 }
 
-func printDictionary(data []repository.MWDResult) {
+func printDictionary(data []repository.MWResult) {
 	// Example of verbs: definitions["verb"]["intransitive verb"]
 	definitions := prepareDefinitions(data)
 
@@ -262,7 +263,7 @@ func printDictionary(data []repository.MWDResult) {
 	}
 }
 
-func printThesaurus(data []repository.MWTResult) {
+func printThesaurus(data []repository.MWResult) {
 	synonyms := prepareThesauruses(data, "synonyms")
 	antonyms := prepareThesauruses(data, "antonyms")
 	both := map[string]Thesaurus{
@@ -285,16 +286,16 @@ func printThesaurus(data []repository.MWTResult) {
 	}
 }
 
-func Print[T repository.APIData](data any) {
+func Print(data []repository.MWResult, which string) {
 	if data == nil {
 		fmt.Println("The API response was empty. Please check your API keys.")
 		os.Exit(1)
 	}
 
-	switch data := data.(type) {
-	case []repository.MWDResult:
+	switch which {
+	case "dictionary":
 		printDictionary(data)
-	case []repository.MWTResult:
+	case "thesaurus":
 		printThesaurus(data)
 	}
 

@@ -3,26 +3,27 @@ package business
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
-type MWResponse interface {
-	[]repository.MWDResult | []repository.MWTResult
+func customUnmarshalJSON(data []byte) error {
+         http.ResponseWriter, r *http.Request
 }
 
-func getMeriamWebster[T MWResponse](word, endpoint string) T {
+func getMeriamWebster(word, endpoint string) []repository.MWResult {
 	API_KEY := "MERRIAM_WEBSTER_DICTIONARY_API_KEY"
 	if endpoint == "thesaurus" {
 		API_KEY = "MERRIAM_WEBSTER_THESAURUS_API_KEY"
 	}
 
-	resp, err := http.Get("https://www.dictionaryapi.com/api/v3/references/" + endpoint + "/json/" + word + "?key=" + os.Getenv(API_KEY))
-	if err != nil {
+	resp, respErr := http.Get("https://www.dictionaryapi.com/api/v3/references/" + endpoint + "/json/" + word + "?key=" + os.Getenv(API_KEY))
+	if respErr != nil {
 		// In case of panicking goroutine: terminates request(), reports error
-		panic(err)
+		panic(respErr)
 	}
 	defer resp.Body.Close()
 
@@ -32,17 +33,20 @@ func getMeriamWebster[T MWResponse](word, endpoint string) T {
 		os.Exit(1)
 	}
 
-	var data T
+	var data []repository.MWResult
 
-	json.NewDecoder(resp.Body).Decode(&data)
+	decodeErr := json.NewDecoder(resp.Body).Decode(&data)
+	if decodeErr != nil {
+		log.Fatal(decodeErr)
+	}
 
 	return data
 }
 
-func GetDefinition(word string) []repository.MWDResult {
-	return getMeriamWebster[[]repository.MWDResult](word, "collegiate")
+func GetDefinition(word string) []repository.MWResult {
+	return getMeriamWebster(word, "collegiate")
 }
 
-func GetThesaurus(word string) []repository.MWTResult {
-	return getMeriamWebster[[]repository.MWTResult](word, "thesaurus")
+func GetThesaurus(word string) []repository.MWResult {
+	return getMeriamWebster(word, "thesaurus")
 }
