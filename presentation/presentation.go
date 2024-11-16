@@ -172,7 +172,6 @@ func prepareDefinitions(data []repository.MWResult) Definitions {
 
 					for _, sense := range sseq {
 						// Ignore useless defining texts
-						fmt.Println(sense)
 						if sense[1].Dt == nil {
 							continue
 						}
@@ -267,7 +266,7 @@ func printThesaurus(data []repository.MWResult) {
 
 func Print(data []repository.MWResult, which string) {
 	if data == nil {
-		fmt.Println("The API response was empty. Please check your API keys.")
+		fmt.Printf("\n\t%s\n\n", "The API response was empty. Please check your API keys.")
 		os.Exit(1)
 	}
 
