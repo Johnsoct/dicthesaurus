@@ -4,28 +4,41 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/Johnsoct/dicthesaurus/repository"
+	"github.com/Johnsoct/dicthesaurus/utils"
 )
 
 var (
-	HFlag      = flag.Bool("h", false, "Show help")
-	wordSubCmd = flag.NewFlagSet("word", flag.ExitOnError)
-	EFlag      = wordSubCmd.Bool("e", false, "Display the word in a sentence")
-	SSFlag     = wordSubCmd.Bool("ss", false, "Display a short and sweet version of the definition")
-	TFlag      = wordSubCmd.Bool("t", false, "Display only thesaurus results")
+	// flags
+	HFlag       = flag.Bool("h", false, "Show help")
+	subcmdFlags = flag.NewFlagSet("word", flag.ExitOnError)
+	EFlag       = subcmdFlags.Bool("e", false, "Display the word in a sentence")
+	SSFlag      = subcmdFlags.Bool("ss", false, "Display a short and sweet version of the definition")
+	TFlag       = subcmdFlags.Bool("t", false, "Display only thesaurus results")
+
+	// "Constants"
+	flags = []repository.Flag{
+		{Flag: "e", Description: "Display the word in a sentence"},
+		{Flag: "ss", Description: "Display a short and sweet version of the definition"},
+		{Flag: "t", Description: "Display thesaurus instead of dictionary results"},
+	}
+	usageExample  = fmt.Sprintf("$ %s linux [FLAGS]", parseCmd(os.Args))
+	usageHeadline = "Dicthesaurus requires only a single command: the word you want to search for."
 )
 
-func cliUsageError() {
-	fmt.Fprintf(flag.CommandLine.Output(), "\n")
-	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", repository.UsageHeadline)
-	fmt.Fprintf(flag.CommandLine.Output(), "\n")
-	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", repository.UsageExample)
-	fmt.Fprintf(flag.CommandLine.Output(), "\n")
-	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", "FLAGS")
+// ERROR HANDLING
+// ERROR HANDLING
+// ERROR HANDLING
 
-	for _, v := range repository.Flags {
+func cliUsageError(headline, headlineExample string, flags []repository.Flag) {
+	fmt.Fprintf(flag.CommandLine.Output(), "\n%s\n\n", utils.BoldText(headline))
+	fmt.Fprintf(flag.CommandLine.Output(), "%s", headlineExample)
+	fmt.Fprintf(flag.CommandLine.Output(), "%s", utils.FormatHeader("FLAGS"))
+
+	for _, v := range flags {
 		fmt.Fprintf(flag.CommandLine.Output(), "\t-%s   :  %s\n", v.Flag, v.Description)
 	}
 
@@ -35,52 +48,73 @@ func cliUsageError() {
 }
 
 func overwriteFlagUsageDefault() {
-	// Overwrite the default error output
-	flag.Usage = cliUsageError
-	wordSubCmd.Usage = cliUsageError
+	// Overwrite the our flagsets error output (flag, subcmdFlags)
+	flag.Usage = func() { cliUsageError(usageHeadline, usageExample, flags) }
+	subcmdFlags.Usage = func() { cliUsageError(usageHeadline, usageExample, flags) }
 }
 
-func parseCommand() {
-	// Handle missing subcommand or flag
-	if len(os.Args) == 1 {
-		cliUsageError()
+// FLAGS
+// FLAGS
+// FLAGS
+
+func hasInvalidArgsAfterSubcmd(args []string) bool {
+	// Handle the 3rd+ argument not being a flag
+	if len(args) > 2 && !strings.HasPrefix(args[2], "-") {
+		return true
 	}
+	return false
 }
 
-func parseFlags() {
-	// Handle the 3rd argument not being a flag
-	if len(os.Args) > 2 && !strings.HasPrefix(os.Args[2], "-") {
-		cliUsageError()
-	}
-}
-
-func parseSubcommand(subcommand string) {
-	// Handle the lack of a subcommand (word to search)
-	if strings.HasPrefix(subcommand, "-") {
-		cliUsageError()
-	}
-}
-
-func parse() {
-	// Cover the loopholes in "flag" parsing
-	parseCommand()
-	parseSubcommand(repository.SUBCOMMAND)
-	parseFlags()
-
+func parseFlags(args []string) {
 	// Parse each flag set
 	flag.Parse()
-	wordSubCmd.Parse(os.Args[2:]) // everything after the subcommand
+	subcmdFlags.Parse(args[2:]) // everything after the subcommand
 }
 
-func init() {
-	overwriteFlagUsageDefault()
-	parse()
+// COMMAND
+// COMMAND
+// COMMAND
+func parseCmd(args []string) string {
+	return filepath.Base(args[0])
+}
 
+// SUBCOMMAND
+// SUBCOMMAND
+// SUBCOMMAND
+
+func hasInvalidSubcmd(args []string) bool {
+	// Handle the lack of a subcmd (word to search)
+	if len(args) < 2 {
+		return true
+	}
+	return strings.HasPrefix(ParseSubcmd(args), "-")
+}
+
+func ParseSubcmd(args []string) string {
+	return args[1]
+}
+
+// INIT FUNCTIONS
+// INIT FUNCTIONS
+// INIT FUNCTIONS
+
+func initMessage(thesaurus bool, args []string) {
 	searchingFor := "dictionary"
 
-	if *TFlag {
+	if thesaurus {
 		searchingFor = "thesaurus"
 	}
 
-	fmt.Printf("\n\tSearching %s for \"%s\" ...\n", searchingFor, repository.SUBCOMMAND)
+	fmt.Printf("\n\tSearching %s for \"%s\" ...\n", searchingFor, ParseSubcmd(args))
+}
+
+func init() {
+	// Handle missing subcommand or invalid 3rd+ arguments
+	if hasInvalidSubcmd(os.Args) || hasInvalidArgsAfterSubcmd(os.Args) {
+		cliUsageError(usageHeadline, usageExample, flags)
+	}
+
+	overwriteFlagUsageDefault()
+	parseFlags(os.Args)
+	initMessage(*TFlag, os.Args)
 }
