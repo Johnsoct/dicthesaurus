@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"strings"
+
+	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
 // TEXT TRANSFORMATIONS
@@ -33,4 +35,22 @@ func FormatHeader(h string) string {
 
 func FormatRow(r string) string {
 	return fmt.Sprintf("\n\t%s", r)
+}
+
+func FormatTableRow(s []string) string {
+	return strings.Repeat("%-15s", len(s))
+}
+
+// CONVERSIONS
+// CONVERSIONS
+// CONVERSIONS
+
+func ConvertSliceBuiltInTypeToSliceAny[T repository.BuiltIn](s []T) []any {
+	values := make([]any, len(s))
+
+	for i, v := range s {
+		values[i] = v
+	}
+
+	return values
 }

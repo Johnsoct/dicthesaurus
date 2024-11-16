@@ -5,7 +5,6 @@ import (
 	"os"
 	"regexp"
 	"slices"
-	"strings"
 
 	"github.com/Johnsoct/dicthesaurus/business"
 	"github.com/Johnsoct/dicthesaurus/repository"
@@ -109,14 +108,8 @@ func stripTokens(text string) string {
 }
 
 func formatAntsSyns(s []string) string {
-	rowFormat := strings.Repeat("%-15s", len(s))
-	anys := make([]any, len(s))
-
-	for i, v := range s {
-		anys[i] = v
-	}
-
-	return fmt.Sprintf(rowFormat, anys...)
+	rowFormat := utils.FormatTableRow(s)
+	return fmt.Sprintf(rowFormat, utils.ConvertSliceBuiltInTypeToSliceAny(s)...)
 }
 
 func formatSenseText(text string) string {
