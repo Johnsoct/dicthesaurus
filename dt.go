@@ -21,7 +21,6 @@ func main() {
 	if v := *business.TFlag; v {
 		data := business.GetThesaurus(repository.SUBCOMMAND)
 		presentation.Print[[]repository.MWTResult](data)
-
 	} else {
 		data := business.GetDefinition(repository.SUBCOMMAND)
 		presentation.Print[[]repository.MWDResult](data)
