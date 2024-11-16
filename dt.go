@@ -18,11 +18,12 @@ func main() {
 		log.Fatal("error loading .env file")
 	}
 
-	if v := *business.TFlag; v {
-		data := business.GetThesaurus(business.ParseSubcmd(os.Args))
-		presentation.Print(data, "thesaurus")
-	} else {
+	switch business.ParseEndpoint(business.SubcmdFlags) {
+	case "dictionary":
 		data := business.GetDefinition(business.ParseSubcmd(os.Args))
 		presentation.Print(data, "dictionary")
+	case "thesaurus":
+		data := business.GetThesaurus(business.ParseSubcmd(os.Args))
+		presentation.Print(data, "thesaurus")
 	}
 }
