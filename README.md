@@ -131,3 +131,4 @@ Flags can be used in either format: `-d, --d`
     - `go.mod` should contain `require github.com/joho/godotenv v1.x.x`
     - `go.sum` should contain two lines pointing to "github.com/joho/godotenv"
 - Generics enable a function to infer parameter types based on the caller of the function
+- By using pure functions you can eliminate state variables (checkout input.go)
