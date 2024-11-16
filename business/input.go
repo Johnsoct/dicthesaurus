@@ -7,20 +7,24 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Johnsoct/dicthesaurus/repository"
 	"github.com/Johnsoct/dicthesaurus/utils"
 )
+
+type inputFlag struct {
+	Flag        string
+	Description string
+}
 
 var (
 	// flags
 	HFlag       = flag.Bool("h", false, "Show help")
-	subcmdFlags = flag.NewFlagSet("word", flag.ExitOnError)
-	EFlag       = subcmdFlags.Bool("e", false, "Display the word in a sentence")
-	SSFlag      = subcmdFlags.Bool("ss", false, "Display a short and sweet version of the definition")
-	TFlag       = subcmdFlags.Bool("t", false, "Display only thesaurus results")
+	SubcmdFlags = flag.NewFlagSet("word", flag.ExitOnError)
+	EFlag       = SubcmdFlags.Bool("e", false, "Display the word in a sentence")
+	SSFlag      = SubcmdFlags.Bool("ss", false, "Display a short and sweet version of the definition")
+	TFlag       = SubcmdFlags.Bool("t", false, "Display only thesaurus results")
 
 	// "Constants"
-	flags = []repository.Flag{
+	flags = []inputFlag{
 		{Flag: "e", Description: "Display the word in a sentence"},
 		{Flag: "ss", Description: "Display a short and sweet version of the definition"},
 		{Flag: "t", Description: "Display thesaurus instead of dictionary results"},
@@ -33,7 +37,7 @@ var (
 // ERROR HANDLING
 // ERROR HANDLING
 
-func cliUsageError(headline, headlineExample string, flags []repository.Flag) {
+func cliUsageError(headline, headlineExample string, flags []inputFlag) {
 	fmt.Fprintf(flag.CommandLine.Output(), "\n%s\n\n", utils.BoldText(headline))
 	fmt.Fprintf(flag.CommandLine.Output(), "%s", headlineExample)
 	fmt.Fprintf(flag.CommandLine.Output(), "%s", utils.FormatHeader("FLAGS"))
@@ -48,9 +52,9 @@ func cliUsageError(headline, headlineExample string, flags []repository.Flag) {
 }
 
 func overwriteFlagUsageDefault() {
-	// Overwrite the our flagsets error output (flag, subcmdFlags)
+	// Overwrite the our flagsets error output (flag, SubcmdFlags)
 	flag.Usage = func() { cliUsageError(usageHeadline, usageExample, flags) }
-	subcmdFlags.Usage = func() { cliUsageError(usageHeadline, usageExample, flags) }
+	SubcmdFlags.Usage = func() { cliUsageError(usageHeadline, usageExample, flags) }
 }
 
 // FLAGS
@@ -65,10 +69,24 @@ func hasInvalidArgsAfterSubcmd(args []string) bool {
 	return false
 }
 
+func ParseEndpoint(flagset *flag.FlagSet) string {
+	if !flagset.Parsed() {
+		fmt.Println("Subcommand flagset not yet parsed")
+	}
+
+	thesaurus := flagset.Lookup("t")
+
+	if thesaurus.Value.String() == "true" {
+		return "thesaurus"
+	}
+
+	return "dictionary"
+}
+
 func parseFlags(args []string) {
 	// Parse each flag set
 	flag.Parse()
-	subcmdFlags.Parse(args[2:]) // everything after the subcommand
+	SubcmdFlags.Parse(args[2:]) // everything after the subcommand
 }
 
 // COMMAND
@@ -98,23 +116,25 @@ func ParseSubcmd(args []string) string {
 // INIT FUNCTIONS
 // INIT FUNCTIONS
 
-func initMessage(thesaurus bool, args []string) {
-	searchingFor := "dictionary"
-
-	if thesaurus {
-		searchingFor = "thesaurus"
-	}
-
-	fmt.Printf("\n\tSearching %s for \"%s\" ...\n", searchingFor, ParseSubcmd(args))
-}
-
-func init() {
+func ignitionChecklist(args []string) {
 	// Handle missing subcommand or invalid 3rd+ arguments
-	if hasInvalidSubcmd(os.Args) || hasInvalidArgsAfterSubcmd(os.Args) {
+	if hasInvalidSubcmd(args) || hasInvalidArgsAfterSubcmd(args) {
 		cliUsageError(usageHeadline, usageExample, flags)
 	}
 
 	overwriteFlagUsageDefault()
-	parseFlags(os.Args)
-	initMessage(*TFlag, os.Args)
+	parseFlags(args)
+}
+
+func ignitionMessage(args []string, endpoint string) {
+	fmt.Printf("\n\tSearching %s for \"%s\" ...\n", endpoint, ParseSubcmd(args))
+}
+
+func ignition(args []string, endpoint string) {
+	ignitionMessage(args, endpoint)
+}
+
+func init() {
+	ignitionChecklist(os.Args)
+	ignition(os.Args, ParseEndpoint(SubcmdFlags))
 }
