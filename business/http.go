@@ -9,6 +9,10 @@ import (
 	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
+func buildEndpointForMeriamWebster(word, endpoint, key string) string {
+	return "https://www.dictionaryapi.com/api/v3/references/" + endpoint + "/json/" + word + "?key=" + os.Getenv(key)
+}
+
 func handle404Error(word string) {
 	fmt.Fprintf(os.Stderr, "Sorry, a definition for %s was not found. Feel free to try again.\n", word)
 	os.Exit(1)
@@ -25,8 +29,8 @@ func handleGetErrors(err error) {
 	panic(err)
 }
 
-func get(word, endpoint, key string) []repository.MWResult {
-	resp, respErr := http.Get("https://www.dictionaryapi.com/api/v3/references/" + endpoint + "/json/" + word + "?key=" + os.Getenv(key))
+func get(word, endpoint string) []repository.MWResult {
+	resp, respErr := http.Get(endpoint)
 	if respErr != nil {
 		handleGetErrors(respErr)
 	}
@@ -48,9 +52,11 @@ func get(word, endpoint, key string) []repository.MWResult {
 }
 
 func GetDefinition(word string) []repository.MWResult {
-	return get(word, "collegiate", "MERRIAM_WEBSTER_DICTIONARY_API_KEY")
+	endpoint := buildEndpointForMeriamWebster(word, "collegiate", "MERRIAM_WEBSTER_DICTIONARY_API_KEY")
+	return get(word, endpoint)
 }
 
 func GetThesaurus(word string) []repository.MWResult {
-	return get(word, "thesaurus", "MERRIAM_WEBSTER_THESAURUS_API_KEY")
+	endpoint := buildEndpointForMeriamWebster(word, "thesaurus", "MERRIAM_WEBSTER_THESAURUS_API_KEY")
+	return get(word, endpoint)
 }
