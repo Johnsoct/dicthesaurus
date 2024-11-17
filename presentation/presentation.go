@@ -220,11 +220,12 @@ func setThFlValues(sas [][]string, values [][]string) [][]string {
 	return sasFl
 }
 
-func prepareThesauruses(data []repository.MWResult, whichType string) Thesaurus {
+func prepareThesaurus(data []repository.MWResult, whichType string) Thesaurus {
 	sas := make(Thesaurus)
 
 	for _, v := range data {
 		values := defineThValues(v, whichType)
+		fmt.Println(values)
 
 		// Ignore all the sas for stems off of the SUBCOMMAND
 		if i := slices.Compare(v.Meta.Stems, []string{business.ParseSubcmd(os.Args)}); i != 0 {
@@ -257,8 +258,8 @@ func printThesaurusRows(rows [][]string) {
 }
 
 func printThesaurus(data []repository.MWResult) {
-	synonyms := prepareThesauruses(data, "synonyms")
-	antonyms := prepareThesauruses(data, "antonyms")
+	synonyms := prepareThesaurus(data, "synonyms")
+	antonyms := prepareThesaurus(data, "antonyms")
 	both := map[string]Thesaurus{
 		"synonyms": synonyms,
 		"antonyms": antonyms,
