@@ -78,6 +78,7 @@ Flags can be used in either format: `-d, --d`
     --- end of output ---
     \n
     ```
+- I'm incredibly happy with the difference in my code from V1 to V2 - the SOLID principles and refactoring presentation and input to be almost stateless was a great decision
 
 ## What I learned
 
@@ -131,4 +132,10 @@ Flags can be used in either format: `-d, --d`
     - `go.mod` should contain `require github.com/joho/godotenv v1.x.x`
     - `go.sum` should contain two lines pointing to "github.com/joho/godotenv"
 - Generics enable a function to infer parameter types based on the caller of the function
-- By using pure functions you can eliminate state variables (checkout input.go)
+- By using pure functions you can eliminate state variables (checkout input.go), which then enforces the practice of using functions, not state, to retrieve values from different places in your appending 
+    - My general assumption is accessing state directly is a risky thing to do becuase of side effects vs getting it with a function that can easily be tested
+    - pure functions just make your application far easier and quicker to write tests for, which means better coverage, faster iterations, and more reliable deploys
+- SRP and DI are probably the most impactful principles of SOLID, especially if you're using composition over inheritance
+- I've heard the critiques, but small functions, specifically where the logic is only 1-10 lines long, is an incredible boon to development... a function can be longer than that, but it shouldn't be the logic (i.e. variables, etc.)
+- Map out the layers of an API before decoding the JSON into a defined type
+
