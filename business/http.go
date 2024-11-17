@@ -9,6 +9,10 @@ import (
 	"github.com/Johnsoct/dicthesaurus/repository"
 )
 
+type APIInterface interface {
+	[]repository.MWResult
+}
+
 func buildEndpointForMeriamWebster(word, endpoint, key string) string {
 	return "https://www.dictionaryapi.com/api/v3/references/" + endpoint + "/json/" + word + "?key=" + os.Getenv(key)
 }
@@ -29,7 +33,7 @@ func handleGetErrors(err error) {
 	panic(err)
 }
 
-func get(word, endpoint string) []repository.MWResult {
+func get[T APIInterface](word, endpoint string) T {
 	resp, respErr := http.Get(endpoint)
 	if respErr != nil {
 		handleGetErrors(respErr)
@@ -41,7 +45,7 @@ func get(word, endpoint string) []repository.MWResult {
 		handle404Error(word)
 	}
 
-	var data []repository.MWResult
+	var data T
 
 	decodeErr := json.NewDecoder(resp.Body).Decode(&data)
 	if decodeErr != nil {
