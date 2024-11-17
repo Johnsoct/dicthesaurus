@@ -84,6 +84,8 @@ func FormatValueBetweenTokens(text string) string {
 		submatch  string
 		replaceFn func(text string) string
 	}
+
+	replaced := text
 	replaces := map[string]Replace{
 		`\{a_link\|(\w+)\}`: {
 			replaceFn: func(text string) string {
@@ -93,15 +95,11 @@ func FormatValueBetweenTokens(text string) string {
 		},
 		`\{sx\|(\w+)\|*\}`: {
 			replaceFn: func(text string) string {
-				uppercased := UppercaseText(text)
-				underlined := UnderlineText(uppercased)
-				return underlined
+				return UnderlineText(UppercaseText(text))
 			},
 			submatch: `\|(\w+)`,
 		},
 	}
-
-	replaced := text
 
 	for regex, replace := range replaces {
 		re := regexp.MustCompile(regex)
