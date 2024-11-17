@@ -11,19 +11,23 @@ type MWSense struct {
 	Dt [][]any `json:"dt"`
 }
 
+type MWSseq struct {
+	string
+	MWSense
+}
+
+type MWDef struct {
+	// Verb divider
+	Vd string `json:"vd,omitempty"`
+	// Group of all the sense sequences and verb dividers for each headword or defined run-on phrase
+	// Sense sequence = contains series of senses and subsenses, ordered by sense numbers
+	Sseq [][][]MWSseq `json:"sseq"`
+}
+
 type MWResult struct {
 	Date string `json:"date"`
 	// Headword information
-	Def []struct {
-		// Verb divider
-		Vd string `json:"vd,omitempty"`
-		// Group of all the sense sequences and verb dividers for each headword or defined run-on phrase
-		// Sense sequence = contains series of senses and subsenses, ordered by sense numbers
-		Sseq [][][]struct {
-			string
-			MWSense
-		} `json:"sseq"`
-	} `json:"def"`
+	Def []MWDef `json:"def"`
 	// Etymology
 	Et [][]string `json:"et"`
 	// Functional label - grammatical function of a headword

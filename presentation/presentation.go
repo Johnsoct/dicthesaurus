@@ -3,7 +3,6 @@ package presentation
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"slices"
 
 	"github.com/Johnsoct/dicthesaurus/business"
@@ -22,91 +21,6 @@ type (
 	Thesaurus   map[string][][]string
 )
 
-func formatValueBetweenTokens(text string) string {
-	type Replace struct {
-		submatch  string
-		replaceFn func(text string) string
-	}
-	replaces := map[string]Replace{
-		`\{a_link\|(\w+)\}`: {
-			replaceFn: func(text string) string {
-				return utils.UnderlineText(text)
-			},
-			submatch: `\|(\w+)`,
-		},
-		`\{sx\|(\w+)\|*\}`: {
-			replaceFn: func(text string) string {
-				uppercased := utils.UppercaseText(text)
-				underlined := utils.UnderlineText(uppercased)
-				return underlined
-			},
-			submatch: `\|(\w+)`,
-		},
-	}
-
-	replaced := text
-
-	for regex, replace := range replaces {
-		re := regexp.MustCompile(regex)
-		subre := regexp.MustCompile(replace.submatch)
-		submatches := 0
-
-		replaced = re.ReplaceAllStringFunc(replaced, func(substring string) string {
-			submatch := replace.replaceFn(subre.FindAllStringSubmatch(substring, -1)[0][1])
-
-			if submatches == 0 {
-				submatch = ": " + submatch
-			}
-
-			submatches++
-
-			return submatch
-		})
-	}
-
-	return replaced
-}
-
-func stripPrefixTokens(text string) string {
-	stripped := text
-	prefixes := []string{
-		`{bc}`,
-		`{sx|`,
-	}
-
-	for _, v := range prefixes {
-		re := regexp.MustCompile(v)
-		stripped = re.ReplaceAllString(stripped, "")
-	}
-
-	return stripped
-}
-
-func stripSuffixTokens(text string) string {
-	stripped := text
-	suffixes := []string{
-		`\|*}`,
-		`}`,
-		`\|+[0-9]+[a-z]*}`,
-	}
-
-	for _, v := range suffixes {
-		re := regexp.MustCompile(v)
-		stripped = re.ReplaceAllString(stripped, "")
-	}
-
-	return stripped
-}
-
-func stripTokens(text string) string {
-	stripped := text
-
-	stripped = stripPrefixTokens(text)
-	stripped = stripSuffixTokens(text)
-
-	return stripped
-}
-
 func formatAntsSyns(s []string) string {
 	rowFormat := utils.FormatTableRow(s)
 	return fmt.Sprintf(rowFormat, utils.ConvertSliceBuiltInTypeToSliceAny(s)...)
@@ -114,8 +28,8 @@ func formatAntsSyns(s []string) string {
 
 func formatSenseText(text string) string {
 	// Replace before stripping... hehe (replace relies on the tokens)
-	replaced := formatValueBetweenTokens(text)
-	stripped := stripTokens(replaced)
+	replaced := utils.FormatValueBetweenTokens(text)
+	stripped := utils.StripTokens(replaced)
 
 	return stripped
 }
@@ -126,6 +40,100 @@ func formatSequence(sseqn int, sn int, text string) string {
 		return fmt.Sprintf("\n%d\t%s", sseqn+1, formatSenseText(text))
 	}
 	return fmt.Sprintf("\t%s", utils.FormatRow(formatSenseText(text)))
+}
+
+// DEFINITIONS
+// DEFINITIONS
+// DEFINITIONS
+
+func defineVd(vd string, fl string) string {
+	verbDivider := vd
+
+	// Verbs have dividers; nouns, adjectives do not
+	// Use Fl as key name for these cases to make the
+	// parsing below much more simple and readable
+	if verbDivider == "" {
+		verbDivider = fl
+	}
+
+	return verbDivider
+}
+
+func setDefVd(definitions VerbDivider, verb string) VerbDivider {
+	vd := definitions
+
+	// Do not overwrite verb dividers; will later append to definitions[v.Fl][verbDivider][sn]
+	if _, ok := vd[verb]; !ok {
+		vd[verb] = make(SenseSequences)
+	}
+
+	return vd
+}
+
+func setDefFl(definitions Definitions, fl string) Definitions {
+	def := definitions
+
+	// Do not overwrite definitions[v.Fl]; will later append to definitions[v.Fl][verbDivider][sn]
+	if _, ok := def[fl]; !ok {
+		def[fl] = make(VerbDivider)
+	}
+
+	return def
+}
+
+func setVdSseq(definitions SenseSequences, v repository.MWResult, def repository.MWDef) SenseSequences {
+	sseq := definitions
+
+	// Short and sweet response
+	if *business.SSFlag {
+		sseq[0] = v.Shortdef
+	} else {
+		sseq = setSseq(definitions, def)
+	}
+
+	return sseq
+}
+
+func setSseq(vd SenseSequences, def repository.MWDef) SenseSequences {
+	sns := vd
+
+	// Each index of sseq is a seq, which contains the actual senses
+	// "sn" is simply the index to keep track of the number of seq's for a tiered output
+	for sn, sseq := range def.Sseq {
+		// Do not overwrite sense sequences; will later append to
+		if _, ok := sns[sn]; !ok {
+			sns[sn] = make(Senses, 0)
+		}
+
+		sns[sn] = setSseqSns(sseq)
+
+	}
+
+	return sns
+}
+
+func setSseqSns(sseq [][]repository.MWSseq) Senses {
+	senses := make(Senses, 0)
+
+	for _, sense := range sseq {
+		// Ignore useless defining texts
+		if sense[1].Dt == nil {
+			continue
+		}
+		if sense[1].Dt[0][0] != "text" {
+			continue
+		}
+
+		// Only capturing the first index of dt (other indexes are not immediate definitions)
+		dt := sense[1].Dt[0][1]
+
+		// Make sure dt is a string value (definition)
+		if d, ok := dt.(string); ok {
+			senses = append(senses, d)
+		}
+	}
+
+	return senses
 }
 
 func prepareDefinitions(data []repository.MWResult) Definitions {
@@ -139,58 +147,13 @@ func prepareDefinitions(data []repository.MWResult) Definitions {
 			continue
 		}
 
-		// Do not overwrite definitions[v.Fl]; will later append to definitions[v.Fl][verbDivider][sn]
-		if _, ok := definitions[v.Fl]; !ok {
-			definitions[v.Fl] = make(VerbDivider)
-		}
+		definitions = setDefFl(definitions, v.Fl)
 
 		// each data object could have multiple definitions
 		for _, def := range v.Def {
-			verbDivider := def.Vd
-
-			// Verbs have dividers; nouns, adjectives do not
-			// Use Fl as key name for these cases to make the
-			// parsing below much more simple and readable
-			if verbDivider == "" {
-				verbDivider = v.Fl
-			}
-
-			// Do not overwrite verb dividers; will later append to definitions[v.Fl][verbDivider][sn]
-			if _, ok := definitions[v.Fl][verbDivider]; !ok {
-				definitions[v.Fl][verbDivider] = make(SenseSequences)
-			}
-
-			if *business.SSFlag {
-				definitions[v.Fl][verbDivider][0] = v.Shortdef
-			} else {
-				// Each index of sseq (sn - sense number) is a group of senses
-				// At each index is an array of the senses within that group
-				for sn, sseq := range def.Sseq {
-
-					// Do not overwrite sense sequences; will later append to
-					if _, ok := definitions[v.Fl][verbDivider][sn]; !ok {
-						definitions[v.Fl][verbDivider][sn] = make(Senses, 0)
-					}
-
-					for _, sense := range sseq {
-						// Ignore useless defining texts
-						if sense[1].Dt == nil {
-							continue
-						}
-						if sense[1].Dt[0][0] != "text" {
-							continue
-						}
-
-						// Only capturing the first index of dt (other indexes are not immediate definitions)
-						dt := sense[1].Dt[0][1]
-
-						// Make sure dt is a string value (definition)
-						if d, ok := dt.(string); ok {
-							definitions[v.Fl][verbDivider][sn] = append(definitions[v.Fl][verbDivider][sn], d)
-						}
-					}
-				}
-			}
+			verbDivider := defineVd(def.Vd, v.Fl)
+			definitions[v.Fl] = setDefVd(definitions[v.Fl], verbDivider)
+			definitions[v.Fl][verbDivider] = setVdSseq(definitions[v.Fl][verbDivider], v, def)
 
 		}
 	}
@@ -198,31 +161,20 @@ func prepareDefinitions(data []repository.MWResult) Definitions {
 	return definitions
 }
 
-func prepareThesauruses(data []repository.MWResult, whichType string) Thesaurus {
-	sas := make(Thesaurus)
+func printDictionaryFl(definitions Definitions, fl string) {
+	for divider, value := range definitions[fl] {
+		fmt.Println(utils.FormatHeader(divider))
+		printDictionarySeq(value)
+	}
+}
 
-	for _, v := range data {
-		values := v.Meta.Syns
-		if whichType == "antonyms" {
-			values = v.Meta.Ants
-		}
-
-		// Ignore all the sas for stems off of the SUBCOMMAND
-		if i := slices.Compare(v.Meta.Stems, []string{business.ParseSubcmd(os.Args)}); i != 0 {
-			continue
-		}
-
-		// Do not overwrite sas[v.Fl]
-		if _, ok := sas[v.Fl]; !ok {
-			sas[v.Fl] = make([][]string, len(values))
-		}
-
-		for i, val := range values {
-			sas[v.Fl][i] = val
+func printDictionarySeq(value SenseSequences) {
+	// Iterate through the sequences in order (matches Merriam-Webster's results)
+	for i := range len(value) {
+		for sn, sense := range value[i] {
+			fmt.Println(formatSequence(i, sn, sense))
 		}
 	}
-
-	return sas
 }
 
 func printDictionary(data []repository.MWResult) {
@@ -230,16 +182,77 @@ func printDictionary(data []repository.MWResult) {
 	definitions := prepareDefinitions(data)
 
 	for fl := range definitions {
-		for divider, value := range definitions[fl] {
-			fmt.Println(utils.FormatHeader(divider))
+		printDictionaryFl(definitions, fl)
+	}
+}
 
-			// Iterate through the sequences in order (matches Merriam-Webster's results)
-			for i := range len(value) {
-				for sn, sense := range value[i] {
-					fmt.Println(formatSequence(i, sn, sense))
-				}
-			}
+// THESAURUS
+// THESAURUS
+// THESAURUS
+
+func defineThValues(v repository.MWResult, which string) [][]string {
+	values := v.Meta.Syns
+	if which == "antonyms" {
+		values = v.Meta.Ants
+	}
+
+	return values
+}
+
+func setThFl(sas Thesaurus, fl string, values [][]string) Thesaurus {
+	sasFl := sas
+
+	// Do not overwrite sas[v.Fl]
+	if _, ok := sasFl[fl]; !ok {
+		sasFl[fl] = make([][]string, len(values))
+	}
+
+	return sasFl
+}
+
+func setThFlValues(sas [][]string, values [][]string) [][]string {
+	sasFl := sas
+
+	for i, val := range values {
+		sasFl[i] = val
+	}
+
+	return sasFl
+}
+
+func prepareThesauruses(data []repository.MWResult, whichType string) Thesaurus {
+	sas := make(Thesaurus)
+
+	for _, v := range data {
+		values := defineThValues(v, whichType)
+
+		// Ignore all the sas for stems off of the SUBCOMMAND
+		if i := slices.Compare(v.Meta.Stems, []string{business.ParseSubcmd(os.Args)}); i != 0 {
+			continue
 		}
+
+		sas = setThFl(sas, v.Fl, values)
+		sas[v.Fl] = setThFlValues(sas[v.Fl], values)
+	}
+
+	return sas
+}
+
+func printThesaurusFl(th Thesaurus) {
+	for fl, rows := range th {
+		if len(rows) == 0 {
+			return
+		}
+
+		fmt.Println(utils.FormatHeader(fl))
+
+		printThesaurusRows(rows)
+	}
+}
+
+func printThesaurusRows(rows [][]string) {
+	for _, row := range rows {
+		fmt.Println(utils.FormatRow(formatAntsSyns(row)))
 	}
 }
 
@@ -252,17 +265,7 @@ func printThesaurus(data []repository.MWResult) {
 	}
 
 	for key := range both {
-		for fl, rows := range both[key] {
-			if len(rows) == 0 {
-				break
-			}
-
-			fmt.Println(utils.FormatHeader(fl))
-
-			for _, row := range rows {
-				fmt.Println(utils.FormatRow(formatAntsSyns(row)))
-			}
-		}
+		printThesaurusFl(both[key])
 	}
 }
 
