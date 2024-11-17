@@ -3,7 +3,6 @@ package presentation
 import (
 	"fmt"
 	"os"
-	"slices"
 
 	"github.com/Johnsoct/dicthesaurus/business"
 	"github.com/Johnsoct/dicthesaurus/repository"
@@ -163,7 +162,7 @@ func prepareDefinitions(data []repository.MWResult) Definitions {
 
 func printDictionaryFl(definitions Definitions, fl string) {
 	for divider, value := range definitions[fl] {
-		fmt.Println(utils.FormatHeader(divider))
+		fmt.Println(utils.FormatHeading(divider))
 		printDictionarySeq(value)
 	}
 }
@@ -199,74 +198,94 @@ func defineThValues(v repository.MWResult, which string) [][]string {
 	return values
 }
 
-func setThFl(sas Thesaurus, fl string, values [][]string) Thesaurus {
-	sasFl := sas
+func filterThStems(data []repository.MWResult) []repository.MWResult {
+	filteredData := make([]repository.MWResult, len(data))
 
-	// Do not overwrite sas[v.Fl]
-	if _, ok := sasFl[fl]; !ok {
-		sasFl[fl] = make([][]string, len(values))
+	for i, v := range data {
+		// Ignore all the nyms for stems branching away from the SUBCOMMAND
+		if v.Meta.ID == business.ParseSubcmd(os.Args) {
+			filteredData = append(filteredData, data[i])
+		}
 	}
 
-	return sasFl
+	return filteredData
 }
 
-func setThFlValues(sas [][]string, values [][]string) [][]string {
-	sasFl := sas
+func setThFl(nyms Thesaurus, fl string, values [][]string) Thesaurus {
+	nymsFl := nyms
+
+	// Do not overwrite nyms[v.Fl]
+	if _, ok := nymsFl[fl]; !ok {
+		nymsFl[fl] = make([][]string, len(values))
+	}
+
+	return nymsFl
+}
+
+func setThFlValues(nyms [][]string, values [][]string) [][]string {
+	nymsFl := nyms
 
 	for i, val := range values {
-		sasFl[i] = val
+		nymsFl[i] = val
 	}
 
-	return sasFl
+	return nymsFl
 }
 
-func prepareThesaurus(data []repository.MWResult, whichType string) Thesaurus {
-	sas := make(Thesaurus)
+func prepareTh(data []repository.MWResult, whichType string) Thesaurus {
+	filteredData := filterThStems(data)
+	nyms := make(Thesaurus)
 
-	for _, v := range data {
+	for _, v := range filteredData {
 		values := defineThValues(v, whichType)
-		fmt.Println(values)
 
-		// Ignore all the sas for stems off of the SUBCOMMAND
-		if i := slices.Compare(v.Meta.Stems, []string{business.ParseSubcmd(os.Args)}); i != 0 {
+		if len(values) == 0 {
 			continue
 		}
 
-		sas = setThFl(sas, v.Fl, values)
-		sas[v.Fl] = setThFlValues(sas[v.Fl], values)
+		nyms = setThFl(nyms, v.Fl, values)
+		nyms[v.Fl] = setThFlValues(nyms[v.Fl], values)
 	}
 
-	return sas
+	return nyms
 }
 
-func printThesaurusFl(th Thesaurus) {
-	for fl, rows := range th {
-		if len(rows) == 0 {
-			return
-		}
+func printThRows(row []string) {
+	fmt.Println(utils.FormatRow(formatAntsSyns(row)))
+}
 
-		fmt.Println(utils.FormatHeader(fl))
-
-		printThesaurusRows(rows)
+func printThNyms(fl string, nyms [][]string) {
+	if len(nyms) == 0 {
+		return
 	}
-}
 
-func printThesaurusRows(rows [][]string) {
-	for _, row := range rows {
-		fmt.Println(utils.FormatRow(formatAntsSyns(row)))
+	fmt.Println(utils.FormatHeading(fl))
+
+	for _, row := range nyms {
+		printThRows(row)
 	}
 }
 
 func printThesaurus(data []repository.MWResult) {
-	synonyms := prepareThesaurus(data, "synonyms")
-	antonyms := prepareThesaurus(data, "antonyms")
-	both := map[string]Thesaurus{
-		"synonyms": synonyms,
-		"antonyms": antonyms,
+	synonyms := prepareTh(data, "synonyms")
+	antonyms := prepareTh(data, "antonyms")
+
+	if len(synonyms) == 0 && len(antonyms) == 0 {
+		fmt.Println(utils.FormatRow("There are no results for that word. Most likely, the word is a stem (version) of a word and has too many possible matches"))
 	}
 
-	for key := range both {
-		printThesaurusFl(both[key])
+	if len(synonyms) > 0 {
+		fmt.Println(utils.FormatHeader("synonyms"))
+	}
+	for fl, nyms := range synonyms {
+		printThNyms(fl, nyms)
+	}
+
+	if len(antonyms) > 0 {
+		fmt.Println(utils.FormatHeader("antonyms"))
+	}
+	for fl, nyms := range antonyms {
+		printThNyms(fl, nyms)
 	}
 }
 
