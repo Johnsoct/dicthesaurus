@@ -4,12 +4,26 @@
 package main
 
 import (
+	"log"
+	"os"
+
 	"github.com/Johnsoct/dicthesaurus/business"
 	"github.com/Johnsoct/dicthesaurus/presentation"
-	"github.com/Johnsoct/dicthesaurus/repository"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	data := business.GetDefinition(repository.SUBCOMMAND)
-	presentation.Print(data)
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("error loading .env file")
+	}
+
+	switch business.ParseEndpoint(business.SubcmdFlags) {
+	case "dictionary":
+		data := business.GetDefinition(business.ParseSubcmd(os.Args))
+		presentation.Print(data, "dictionary")
+	case "thesaurus":
+		data := business.GetThesaurus(business.ParseSubcmd(os.Args))
+		presentation.Print(data, "thesaurus")
+	}
 }

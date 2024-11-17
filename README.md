@@ -1,5 +1,7 @@
 # Overview
 
+// TODO: add gif of CLI in action
+
 Dicthesaurus is a dictionary and thesaurus CLI program built only with Go standard packages. 
 
 Currently, it makes use of the [Free Dictionary API](https://dictionaryapi.dev/).
@@ -52,6 +54,32 @@ Flags can be used in either format: `-d, --d`
     - The antonym and synonym fields are blank 99% of the time, and there isn't a "free thesaurus API" to match
 - Thesaurus flag does not work given the antonym and synonym fields are always empty in the API responses
 
+## Version 2 Review
+- Becuase it was a personal project, I was a little too relaxed with making small commits, and sequentially performing really small reviews and PRs, which would have taken less time, mental energy, and taught me the SOLID principles more quickly, which I hope would indicate all subsequent PRs would require less effort to review because I was writing better code...
+    - Lesson: Small tasks, commit often, PR often, review often (AKA small pieces)
+- While reviewing similarity of the output formatting between the dictionary and thesaurus I realized I should have came up with a presentation layout beforehand; however, this is what I happily came up with based on a few basic text-based design principles (white space, weight, case)
+    ```text
+    \n
+    "Searching [dictionary/thesaurus] for [subcommand] ..."
+    \n
+    \n
+    \n
+    [Part of Speech]
+    \n
+    \n
+    [Value]
+    \n
+    [Value]
+    \n
+    \n
+    \n
+    [Part of Speech]
+    ...repeat values and parts of speech until end
+    --- end of output ---
+    \n
+    ```
+- I'm incredibly happy with the difference in my code from V1 to V2 - the SOLID principles and refactoring presentation and input to be almost stateless was a great decision
+
 ## What I learned
 
 - What Go considers a package
@@ -97,3 +125,17 @@ Flags can be used in either format: `-d, --d`
     - `\033[0m` resets the escaped text modifications (or ends an ongoing one)
     - Check out "ECMA-48 Select Graphic Rendition (SGR)" codes > [Linux console codes](https://man7.org/linux/man-pages/man4/console_codes.4.html)
 - []string can be combined into a string with `strings.Join`
+- When making an empty slice, `make([]string, length)`, creates a slice with zero values until the "length", which means if you're only appending to a slice and printing out each slice element, the first "length" elements will be empty
+- Implementing `.env` files with `joho/godotenv` package, which also was my first time using an external, non-standard library package
+    - Within your project RWD, `go get "github.com/joho/godotenv"`
+    - `go mod tidy`
+    - `go.mod` should contain `require github.com/joho/godotenv v1.x.x`
+    - `go.sum` should contain two lines pointing to "github.com/joho/godotenv"
+- Generics enable a function to infer parameter types based on the caller of the function
+- By using pure functions you can eliminate state variables (checkout input.go), which then enforces the practice of using functions, not state, to retrieve values from different places in your appending 
+    - My general assumption is accessing state directly is a risky thing to do becuase of side effects vs getting it with a function that can easily be tested
+    - pure functions just make your application far easier and quicker to write tests for, which means better coverage, faster iterations, and more reliable deploys
+- SRP and DI are probably the most impactful principles of SOLID, especially if you're using composition over inheritance
+- I've heard the critiques, but small functions, specifically where the logic is only 1-10 lines long, is an incredible boon to development... a function can be longer than that, but it shouldn't be the logic (i.e. variables, etc.)
+- Map out the layers of an API before decoding the JSON into a defined type
+
