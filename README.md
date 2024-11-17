@@ -4,7 +4,7 @@
 
 Dicthesaurus is a dictionary and thesaurus CLI program built only with Go standard packages. 
 
-Currently, it makes use of the [Free Dictionary API](https://dictionaryapi.dev/).
+Currently, it makes use of the [Merriam Webster's API](https://dictionaryapi.dev/).
 
 ## Motivation
 
@@ -14,13 +14,30 @@ It is my intent to replace my love of OSX's built-in dictionary lookup through t
 
 ### Installation
 
+#### Bash script
+This script will check to see if Go is installed and updated on your system, download this package, build it with Go, and store it in /usr/local/bin.
+
 TBD
+
+#### Building via Go
+0. Create an account and get dictionary and thesaurus keys at [Merriam Webster](https://dictionaryapi.com/)
+1. Clone and navigate to the root of this package
+2. Create a `.env` file with both ENV variables:
+    ```
+    MERRIAM_WEBSTER_DICTIONARY_API_KEY="..."
+    MERRIAM_WEBSTER_THESAURUS_API_KEY="..."
+    ```
+3. Run `$ go build -o [whatever you want the binary to be - dt]`
+4. Move the newly created binary from the root of your project to a bin in your $PATH
+    1. I believe MacOS recommends `/usr/local/bin`, which is for user-installed binaries
+5. Restart/source your consoles
+6. `$ [binary] taco` should return definitions for "taco"
 
 ### Usage
 
 Via your terminal:
 
-`$ dicthesaurus <word> [FLAGS]`
+`$ dt <word> [FLAGS]`
 
 Flags can be used in either format: `-d, --d`
 
