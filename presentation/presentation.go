@@ -59,7 +59,7 @@ func defineVd(vd string, fl string) string {
 	return verbDivider
 }
 
-func excludeDefinitions(v repository.MWResult) bool {
+func excludeDefinition(v repository.MWResult) bool {
 	if excludeEmptyDefinition(v) || excludeStemSubmatch(v) {
 		return true
 	}
@@ -170,7 +170,7 @@ func prepareDefinitions(data []repository.MWResult) Definitions {
 
 	// data could have multiple results
 	for _, v := range data {
-		if excludeDefinitions(v) {
+		if excludeDefinition(v) {
 			continue
 		}
 
