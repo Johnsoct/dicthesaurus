@@ -91,13 +91,16 @@ func FormatValueBetweenTokens(text string) string {
 			replaceFn: func(text string) string {
 				return UnderlineText(text)
 			},
+			// Should match the first capture group
 			submatch: `\|(\w+)`,
 		},
-		`\{sx\|(\w+)\|*\}`: {
+		// regexr.com/892ns
+		`\{sx\|([a-zA-Z- ]+)\|([a-zA-Z0-9:])*\|*[0-9a-zA-Z]*\}`: {
 			replaceFn: func(text string) string {
 				return UnderlineText(UppercaseText(text))
 			},
-			submatch: `\|(\w+)`,
+			// Should match the first capture group
+			submatch: `\|([a-zA-Z- ]+)`,
 		},
 	}
 
@@ -107,6 +110,8 @@ func FormatValueBetweenTokens(text string) string {
 		submatches := 0
 
 		replaced = re.ReplaceAllStringFunc(replaced, func(substring string) string {
+			// Enable to debug missed token replacements
+			// fmt.Println(re, subre, substring, subre.FindAllStringSubmatch(substring, -1)[0])
 			submatch := replace.replaceFn(subre.FindAllStringSubmatch(substring, -1)[0][1])
 
 			if submatches == 0 {
