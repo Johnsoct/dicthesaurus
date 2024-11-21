@@ -1,6 +1,6 @@
 # Overview
 
-// TODO: add gif of CLI in action
+![dt_example_720](https://github.com/user-attachments/assets/98da69fb-1f69-44fe-b613-f4f4f6dda1d6)
 
 Dicthesaurus is a dictionary and thesaurus CLI program built only with Go standard packages. 
 

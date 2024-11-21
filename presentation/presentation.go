@@ -3,6 +3,7 @@ package presentation
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Johnsoct/dicthesaurus/business"
 	"github.com/Johnsoct/dicthesaurus/repository"
@@ -56,6 +57,35 @@ func defineVd(vd string, fl string) string {
 	}
 
 	return verbDivider
+}
+
+func excludeDefinition(v repository.MWResult) bool {
+	if excludeEmptyDefinition(v) || excludeStemSubmatch(v) {
+		return true
+	}
+
+	return false
+}
+
+func excludeEmptyDefinition(v repository.MWResult) bool {
+	// If the data object doesn't have the property "hom,"
+	// it's not an identical spelling as the searched word
+	if v.Def == nil {
+		return true
+	}
+
+	return false
+}
+
+func excludeStemSubmatch(v repository.MWResult) bool {
+	// If Meta ID does not == [word] or [word:#], it's a stem off of [word]
+	directMatch := v.Meta.ID == strings.ToLower(business.ParseSubcmd(os.Args))
+	prefixMatch := strings.HasPrefix(v.Meta.ID, strings.ToLower(business.ParseSubcmd(os.Args)+":"))
+	if !directMatch && !prefixMatch {
+		return true
+	}
+
+	return false
 }
 
 func setDefVd(definitions VerbDivider, verb string) VerbDivider {
@@ -140,9 +170,7 @@ func prepareDefinitions(data []repository.MWResult) Definitions {
 
 	// data could have multiple results
 	for _, v := range data {
-		// If the data object doesn't have the property "hom,"
-		// it's not an identical spelling as the searched word
-		if v.Def == nil {
+		if excludeDefinition(v) {
 			continue
 		}
 
