@@ -14,6 +14,9 @@ It is my intent to replace my love of OSX's built-in dictionary lookup through t
 
 ### Installation
 
+#### Download the binary from the website
+Visit [Dicthesaurus](https://dicthesaurus.com) and click download. In a terminal, go to wherever your browser downloads files, and run `cp ./dt /usr/bin`.
+
 #### Bash script
 This script will check to see if Go is installed and updated on your system, download this package, build it with Go, and store it in /usr/local/bin.
 
