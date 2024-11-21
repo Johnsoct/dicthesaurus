@@ -60,7 +60,7 @@ func defineVd(vd string, fl string) string {
 }
 
 func excludeDefinitions(v repository.MWResult) bool {
-	if excludeEmptyDefinition(v) || excludeStemMatch(v) {
+	if excludeEmptyDefinition(v) || excludeStemSubmatch(v) {
 		return true
 	}
 
@@ -77,7 +77,7 @@ func excludeEmptyDefinition(v repository.MWResult) bool {
 	return false
 }
 
-func excludeStemMatch(v repository.MWResult) bool {
+func excludeStemSubmatch(v repository.MWResult) bool {
 	// If Meta ID does not == [word] or [word:#], it's a stem off of [word]
 	directMatch := v.Meta.ID == strings.ToLower(business.ParseSubcmd(os.Args))
 	prefixMatch := strings.HasPrefix(v.Meta.ID, strings.ToLower(business.ParseSubcmd(os.Args)+":"))
