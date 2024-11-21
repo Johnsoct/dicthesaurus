@@ -170,7 +170,7 @@ func prepareDefinitions(data []repository.MWResult) Definitions {
 
 	// data could have multiple results
 	for _, v := range data {
-		if excl := excludeDefinitions(v); excl {
+		if excludeDefinitions(v) {
 			continue
 		}
 
