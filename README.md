@@ -10,6 +10,10 @@ Currently, it makes use of the [Merriam Webster's API](https://dictionaryapi.dev
 
 It is my intent to replace my love of OSX's built-in dictionary lookup through the spotlight tool now that I'm solely using Linux, and I've found there's never a day or time where I don't have an active terminal ready for a quick search!
 
+...
+
+Any yes, I know the name is funn...slightly innappropriate sounding...
+
 ## Instructions
 
 ### Installation
